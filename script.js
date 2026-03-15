@@ -1,50 +1,86 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 폼 입력 요소들
-    const titleInput = document.getElementById('title');
-    const rewardInput = document.getElementById('reward');
-    const targetInput = document.getElementById('target');
-    const dateInput = document.getElementById('date');
-    const themeColorInput = document.getElementById('theme-color');
-
-    // 캔버스 내 실시간 반영 요소들
-    const previewTitle = document.getElementById('preview-title');
-    const previewReward = document.getElementById('preview-reward');
-    const previewTarget = document.getElementById('preview-target');
-    const previewDate = document.getElementById('preview-date');
-    const badge = document.getElementById('preview-badge');
-    const root = document.documentElement;
-
-    // 텍스트 업데이트 헬퍼 함수
-    const updateText = (element, value, defaultText) => {
-        element.textContent = value.trim() || defaultText;
+    // 폼 요소 선택
+    const inputs = {
+        title: document.getElementById('title'),
+        target: document.getElementById('target'),
+        dateDate: document.getElementById('date-date'),
+        dateTime: document.getElementById('date-time'),
+        location: document.getElementById('location'),
+        benefit: document.getElementById('benefit'),
+        deadline: document.getElementById('deadline'),
+        announcement: document.getElementById('announcement'),
+        notice: document.getElementById('notice')
     };
 
-    // 테마 컬러 변경 함수
-    const updateThemeColor = (color) => {
-        // CSS 변수를 통해 글로벌 primary 색상 변경
-        root.style.setProperty('--primary', color);
-        
-        // 뱃지 배경을 위한 알파(투명도) 컬러 생성
-        const hex2rgba = (hex, alpha = 0.1) => {
-            const r = parseInt(hex.slice(1, 3), 16);
-            const g = parseInt(hex.slice(3, 5), 16);
-            const b = parseInt(hex.slice(5, 7), 16);
-            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-        };
+    // 미리보기(캔버스) 요소 선택
+    const previews = {
+        title: document.getElementById('preview-title'),
+        target: document.getElementById('preview-target'),
+        dateDate: document.getElementById('preview-date-date'),
+        dateTime: document.getElementById('preview-date-time'),
+        location: document.getElementById('preview-location'),
+        benefit: document.getElementById('preview-benefit'),
+        deadline: document.getElementById('preview-deadline'),
+        announcement: document.getElementById('preview-announcement'),
+        notice: document.getElementById('preview-notice')
+    };
 
-        try {
-            badge.style.backgroundColor = hex2rgba(color, 0.1);
-            badge.style.color = color; // 뱃지 텍스트 색상도 맞춰줌
-        } catch (e) {
-            console.error('컬러 변환 오류:', e);
+    const themeColorInput = document.getElementById('theme-color');
+    const root = document.documentElement;
+    const highlightRow = document.querySelector('.highlight-row');
+
+    // 텍스트 업데이트 헬퍼
+    const updateText = (previewElement, value, defaultText) => {
+        if (!previewElement) return;
+        previewElement.textContent = value.trim() || defaultText;
+    };
+
+    // 이벤트 리스너: 단일 텍스트 바인딩
+    const bindInputToPreview = (inputId, defaultText) => {
+        if (inputs[inputId] && previews[inputId]) {
+            inputs[inputId].addEventListener('input', (e) => {
+                updateText(previews[inputId], e.target.value, defaultText);
+            });
         }
     };
 
-    // 실시간 이벤트 리스너 등록
-    titleInput.addEventListener('input', (e) => updateText(previewTitle, e.target.value, '진행할 리서치 제목을 입력해주세요'));
-    rewardInput.addEventListener('input', (e) => updateText(previewReward, e.target.value, '보상 미정'));
-    targetInput.addEventListener('input', (e) => updateText(previewTarget, e.target.value, '제한 없음'));
-    dateInput.addEventListener('input', (e) => updateText(previewDate, e.target.value, '일정 미정'));
-    
-    themeColorInput.addEventListener('input', (e) => updateThemeColor(e.target.value));
+    bindInputToPreview('title', '리서치 제목을 입력하세요');
+    bindInputToPreview('target', '입력 없음');
+    bindInputToPreview('dateDate', '날짜 미정');
+    bindInputToPreview('dateTime', '시간 미정');
+    bindInputToPreview('location', '장소 미정');
+    bindInputToPreview('benefit', '혜택 미정');
+    bindInputToPreview('deadline', '마감일 미정');
+    bindInputToPreview('announcement', '안내일 미정');
+    bindInputToPreview('notice', '');
+
+    // 테마 컬러 변경 (상단 라인, 하이라이트 등 CSS 변수로 전파)
+    const hex2rgba = (hex, alpha) => {
+        // HEX to RGB
+        let c;
+        if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+            c= hex.substring(1).split('');
+            if(c.length== 3){
+                c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+            }
+            c= '0x'+c.join('');
+            return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
+        }
+        return `rgba(0,0,0,${alpha})`;
+    };
+
+    themeColorInput.addEventListener('input', (e) => {
+        const color = e.target.value;
+        root.style.setProperty('--primary', color);
+        
+        // 하이라이트 배경색(alpha값 사용)
+        if (highlightRow) {
+            highlightRow.style.backgroundColor = hex2rgba(color, 0.04);
+        }
+    });
+
+    // 초기 색상 세팅 (초기 로딩 시 한번 실행하여 rgba 배경 처리)
+    if (themeColorInput) {
+        themeColorInput.dispatchEvent(new Event('input'));
+    }
 });
