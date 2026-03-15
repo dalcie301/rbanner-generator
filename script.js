@@ -83,4 +83,67 @@ document.addEventListener('DOMContentLoaded', () => {
     if (themeColorInput) {
         themeColorInput.dispatchEvent(new Event('input'));
     }
+
+    // ---------------------------------------------
+    // 고화질 이미지 캡처 및 다운로드 기능 (1080px 고정)
+    // ---------------------------------------------
+    const downloadBtn = document.getElementById('download-btn');
+    const bannerCanvas = document.getElementById('banner-canvas');
+
+    if (downloadBtn && bannerCanvas) {
+        downloadBtn.addEventListener('click', () => {
+            // 다운로드 중 시각적 피드백
+            const originalText = downloadBtn.textContent;
+            downloadBtn.textContent = '이미지 생성 중...';
+            downloadBtn.style.pointerEvents = 'none';
+            downloadBtn.style.opacity = '0.7';
+
+            // 1. html2canvas로 매우 높은 해상도(scale 3)로 먼저 캡처
+            // (배경색을 완전히 흰색으로 채워 불필요한 투명도 및 여백 발생 방지)
+            const captureScale = 3; 
+
+            html2canvas(bannerCanvas, {
+                scale: captureScale, 
+                backgroundColor: '#FFFFFF', // 깔끔한 화이트 배경 고정
+                useCORS: true,
+                logging: false
+            }).then((highResCanvas) => {
+                // 2. 가로 1080px에 맞춰 비율대로 최종 캔버스 생성
+                const targetWidth = 1080;
+                // 가로/세로 비율 유지
+                const targetHeight = (targetWidth / highResCanvas.width) * highResCanvas.height;
+
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = targetWidth;
+                finalCanvas.height = targetHeight;
+                const ctx = finalCanvas.getContext('2d');
+                
+                // 이미지 품질 옵션으로 글씨 및 선명도 보호
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                
+                // 3. 고해상도 캔버스를 1080px 캔버스로 리사이징해서 그리기
+                ctx.drawImage(highResCanvas, 0, 0, targetWidth, targetHeight);
+
+                // 4. 추출 후 다운로드
+                const link = document.createElement('a');
+                link.download = '리서치공고_배너.png';
+                link.href = finalCanvas.toDataURL('image/png', 1.0);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // 상태 원상복구
+                downloadBtn.textContent = originalText;
+                downloadBtn.style.pointerEvents = 'auto';
+                downloadBtn.style.opacity = '1';
+            }).catch(err => {
+                console.error('캡처 처리 중 오류:', err);
+                alert('이미지 생성에 실패했습니다.');
+                downloadBtn.textContent = originalText;
+                downloadBtn.style.pointerEvents = 'auto';
+                downloadBtn.style.opacity = '1';
+            });
+        });
+    }
 });

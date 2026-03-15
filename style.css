@@ -157,6 +157,42 @@ body {
 }
 
 /* -------------------------------------
+   Download Button (Actions)
+------------------------------------- */
+.form-actions {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px dashed var(--border-color);
+}
+
+.download-btn {
+    width: 100%;
+    padding: 1.125rem 1.5rem;
+    background-color: var(--text-title); /* 트렌디한 블랙 베이스 */
+    color: #FFFFFF;
+    font-size: 1.0625rem;
+    font-weight: 800;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.download-btn:hover {
+    background-color: var(--primary); /* 호버 시 테마 컬러로 강렬하게 포인트 */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(252, 91, 79, 0.3); /* 연동 컬러 대신 명확한 하이라이트 */
+}
+
+.download-btn:active {
+    transform: translateY(0);
+}
+
+/* -------------------------------------
    Preview Panel Layout (Right)
 ------------------------------------- */
 .preview-panel {
