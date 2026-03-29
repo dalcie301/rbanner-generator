@@ -101,6 +101,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 기존 템플릿 클래스 삭제 후 새로운 템플릿 할당
                 const targetTpl = clickedBtn.dataset.tpl; // 'template-a' 또는 'template-b'
                 bannerCanvas.classList.remove('template-a', 'template-b');
+                
+                // 로고 스위칭 처리
+                const logoImg = document.querySelector('.brand-watermark .official-logo');
+                if (targetTpl === 'template-b') {
+                    if (logoImg) logoImg.src = 'assets/images/LOGO_20SLAB_white.png';
+                } else {
+                    if (logoImg) logoImg.src = 'assets/images/LOGO_20SLAB.png';
+                }
+
                 if (targetTpl) {
                     bannerCanvas.classList.add(targetTpl);
                 }

@@ -484,13 +484,54 @@ body {
     object-fit: contain;
 }
 
-/* 템플릿 로직 (빈 뼈대, 추후 확장용) */
+/* 템플릿 로직 */
 .template-a .banner-header {
-    display: block; /* 템플릿 A 확장 예정 */
+    display: block; /* 템플릿 A 기본 여백 */
+}
+
+/* 템플릿 B 스타일 정의 */
+.template-b {
+    border: 36px solid #E53737;
+    position: relative;
+}
+
+.template-b .canvas-top-line {
+    display: none; /* 상단 포인트 라인 숨기기 */
+}
+
+/* 테두리가 36px이나 부피를 차지하므로, 패딩을 조금 줄여 오토레이아웃 여유 공간 확보 */
+.template-b .banner-content {
+    padding: 2.5rem 2.5rem 1rem;
 }
 
 .template-b .banner-header {
-    display: block; /* 템플릿 B 확장 예정 */
+    margin-bottom: 2rem;
+}
+
+.template-b .info-list dl {
+    padding: 0.75rem 0; /* 요소 간 간격 적절히 조절 */
+}
+
+.template-b .banner-footer {
+    padding: 2rem 2.5rem 2rem;
+}
+
+/* 템플릿 B에서 로고를 하단 테두리 중앙에 배치 */
+.template-b .brand-watermark {
+    position: absolute;
+    bottom: -28px; /* 36px 테두리의 중앙 (로고 높이 20px 고려 시 -28px에 위치) */
+    right: 2.5rem; /* 본문 텍스트 패딩(2.5rem)과 우측 정렬 */
+    z-index: 10;
+}
+
+/* 템플릿 B '★ 강조' 항목의 색상을 테두리 색상과 동일하게 #E53737로 맞춰줌 */
+.template-b .highlight-row dt,
+.template-b .highlight-row dd {
+    color: #E53737 !important;
+}
+
+.template-b .highlight-row {
+    background-color: rgba(229, 55, 55, 0.04) !important;
 }
 
 /* -------------------------------------
