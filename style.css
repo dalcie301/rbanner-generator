@@ -53,11 +53,19 @@ body {
     width: 240px;
     background-color: #FAFAFA;
     border-right: 1px solid var(--border-color);
-    padding: 2.5rem 1.5rem;
+    /* 우측 편집 패널의 테두리 여백(5px)을 동일하게 더해서 y축 높이를 완벽히 맞춤 */
+    padding: calc(2.5rem + 5px) 1.5rem 2.5rem 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 2.5rem;
     overflow-y: auto;
+}
+
+.app-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    color: var(--text-title);
 }
 
 .setting-group h3 {
@@ -129,15 +137,32 @@ body {
 /* Col 2: 콘텐츠 편집 */
 .build-col-content {
     flex: 1;
-    padding: 2.5rem 2.5rem;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* 테두리가 잘리지 않도록 이곳에서 스크롤을 막음 */
+    border: 3px solid transparent; /* 평활 시 3px 프레임 확보 */
+    box-sizing: border-box; /* 패널 폭 440px 고정 안쪽으로 보더 흡수 */
+    padding: 5px; /* 스크롤바가 테두리에서 5px 떨어지도록 안쪽 여백 설정 */
     background-color: var(--panel-bg);
+    transition: all 0.3s ease;
+}
+
+.build-panel-scroller {
+    padding: 2.5rem 2rem 2.5rem 2rem; /* 스크롤 내부 영역은 알맹이 div로 넘김 */
+    overflow-y: auto;
+    flex: 1;
 }
 
 .content-header {
     margin-bottom: 2.5rem;
     border-bottom: 2px solid var(--text-title);
     padding-bottom: 1.25rem;
+}
+
+/* Edit Mode Visual Feedback */
+.build-col-content.edit-mode-active {
+    border: 3px solid #4895FF; /* 투명 테두리가 파란색으로 변경됨 */
+    background-color: rgba(72, 149, 255, 0.02);
 }
 
 .content-header h2 {
@@ -163,6 +188,13 @@ body {
     font-weight: 700;
     margin-bottom: 0.5rem;
     color: var(--text-title);
+}
+
+/* 주요 섹션(리서치 제목, 유의사항) 라벨을 공고 항목 헤더와 동일하게 강조 */
+.form-group label[for="title"],
+.form-group label[for="notice"] {
+    font-size: 1.125rem;
+    font-weight: 800;
 }
 
 .form-group input[type="text"],
@@ -208,6 +240,31 @@ body {
     font-weight: 800;
 }
 
+.list-action-btns {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.edit-mode-btn {
+    padding: 0.5rem 0.875rem;
+    background-color: var(--text-main);
+    border: none;
+    border-radius: 0.25rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #FFF;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.edit-mode-btn:hover {
+    background-color: #111;
+}
+
+.edit-mode-btn.active {
+    background-color: var(--primary);
+}
+
 .add-item-btn {
     padding: 0.5rem 0.875rem;
     background-color: #F0F0F0;
@@ -231,6 +288,114 @@ body {
     border-radius: 0.375rem;
     margin-bottom: 1rem;
     position: relative;
+    /* 부드러운 추가/삭제 애니메이션을 돕는 전환 효과 */
+    transition: all 0.3s ease;
+}
+
+.item-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.item-label-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1; /* 가변 인풋 공간 확보 */
+}
+
+.item-header-row label, .item-header-row .group-label {
+    font-size: 0.875rem !important;
+    font-weight: 700 !important;
+    color: var(--text-title);
+    margin-bottom: 0 !important;
+}
+
+/* 동적 생성되는 항목명 입력 필드 */
+.dynamic-title-input {
+    flex: 1;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--text-title);
+    border: 1px solid transparent;
+    border-bottom: 1px dashed var(--border-color);
+    background: transparent;
+    padding: 0.25rem 0.25rem 0.25rem 0;
+    margin-right: 1rem;
+    outline: none;
+    transition: border-bottom-color 0.2s ease;
+}
+
+.dynamic-title-input:focus, .dynamic-title-input:hover {
+    border-bottom-color: var(--primary);
+}
+
+/* 편집 모드일 때만 보이는 기능 버튼들 */
+.del-btn, .drag-handle, .fixed-item-label {
+    display: none;
+}
+
+.edit-mode-active .del-btn {
+    display: flex;
+}
+
+.edit-mode-active .drag-handle {
+    display: inline-flex;
+}
+
+.edit-mode-active .fixed-item-label {
+    display: inline;
+}
+
+.fixed-item-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-left: 0.25rem;
+}
+
+/* 쓰레기통 아이콘 버튼 */
+.del-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-light);
+    padding: 0.375rem;
+    border-radius: 0.375rem;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.del-btn:hover {
+    color: #E53737;
+    background-color: rgba(229, 55, 55, 0.1);
+}
+
+/* 드래그 핸들 */
+.drag-handle {
+    cursor: grab;
+    color: var(--text-muted);
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+}
+
+.drag-handle:hover {
+    background-color: #EAEAEA;
+    color: var(--text-title);
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Sortable.js 고스트 요소(잡고 있는 동안) 효과 */
+.sortable-ghost {
+    opacity: 0.5;
 }
 
 /* 기존 그룹핑 폼 (일시 등) 유지 */
@@ -240,8 +405,8 @@ body {
 
 .group-label {
     display: block;
-    font-size: 0.9375rem;
-    font-weight: 800;
+    font-size: 0.875rem;
+    font-weight: 700;
     margin-bottom: 1rem;
     color: var(--text-title);
 }
@@ -392,11 +557,18 @@ body {
     letter-spacing: -0.03em;
 }
 
+.info-list {
+    display: flex;
+    flex-direction: column;
+}
+
 .info-list dl {
     display: flex;
     align-items: flex-start;
-    padding: 0.875rem 0;
-    border-bottom: 1px solid var(--border-soft);
+    padding: 1.125rem 0;     /* 위아래 간격을 1.125rem으로 완벽히 통일 */
+    border-bottom: 1px solid #EEEEEE; /* 수평 구분선 동일한 연한 회색(1px) 색상 통일 */
+    margin: 0;
+    position: relative; /* 하이라이트 배경 렌더링에 필요 */
 }
 
 .info-list dl:last-child {
@@ -430,23 +602,31 @@ body {
 }
 
 .highlight-row {
+    /* 레이아웃 박스(상하 간격 및 테두리)를 다른 항목과 100% 동일하게 유지 */
+    border-bottom: 1px solid #EEEEEE !important;
+    padding: 1.125rem 0 !important;
+    margin: 0 !important;
+    background-color: transparent !important; /* 배경색 직접 주면 border까지 늘어남 방지 */
+}
+
+/* 여백을 침범하지 않게 가상 요소로 배경색만 은은하게 할당 */
+.highlight-row::before {
+    content: '';
+    position: absolute;
+    top: 0.125rem; bottom: 0.125rem;
+    left: -1rem; right: -1rem;
     background-color: rgba(252, 91, 79, 0.04);
-    border-bottom: none !important;
-    padding: 1.25rem 1rem !important;
-    margin: 0.5rem -1rem;
-    border-radius: 0.25rem;
+    border-radius: 0.375rem;
+    z-index: 0;
+    pointer-events: none;
 }
 
 .highlight-row dt, .highlight-row dd {
+    position: relative;
+    z-index: 1;
     color: var(--primary);
     font-weight: 700;
     transition: color 0.3s ease;
-}
-
-.divider {
-    height: 1px;
-    background-color: var(--border-color);
-    margin: 1.5rem 0;
 }
 
 .semi-bold { font-weight: 600; }
@@ -462,7 +642,7 @@ body {
 
 .notice-container {
     flex: 1;
-    padding-right: 2rem;
+    padding-right: 1.5rem; /* 텍스트 공간을 더 확보하기 위해 우측 여백을 소폭 축소 */
 }
 
 .notice-text {
@@ -470,7 +650,8 @@ body {
     color: var(--text-light);
     line-height: 1.5;
     letter-spacing: -0.01em;
-    white-space: pre-wrap;
+    white-space: pre-wrap; /* 사용자가 입력한 엔터(줄바꿈) 유지 */
+    word-break: keep-all; /* 단어 단위로 넘어가도록 잘림 현상 방지 */
 }
 
 .brand-watermark {
@@ -508,9 +689,7 @@ body {
     margin-bottom: 2rem;
 }
 
-.template-b .info-list dl {
-    padding: 0.75rem 0; /* 요소 간 간격 적절히 조절 */
-}
+/* template-b 여백 리셋: 모든 항목의 공통 간격 통일 목적 */
 
 .template-b .banner-footer {
     padding: 2rem 2.5rem 2rem;
@@ -530,7 +709,8 @@ body {
     color: #E53737 !important;
 }
 
-.template-b .highlight-row {
+/* ::before 가상 요소에 템플릿 B 전용 붉은 배경 덮어씌움 */
+.template-b .highlight-row::before {
     background-color: rgba(229, 55, 55, 0.04) !important;
 }
 

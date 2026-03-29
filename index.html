@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 </head>
 
 <body>
@@ -18,6 +19,7 @@
 
             <!-- Col 1: 기초 설정 -->
             <div class="build-col build-col-settings">
+                <h2 class="app-title">공고 뚝딱</h2>
                 <div class="setting-group">
                     <h3>템플릿 선택</h3>
                     <div class="template-toggle">
@@ -41,6 +43,7 @@
 
             <!-- Col 2: 콘텐츠 편집 -->
             <div class="build-col build-col-content">
+                <div id="build-panel-scroller" class="build-panel-scroller">
                 <header class="content-header">
                     <h2>배너 콘텐츠 편집</h2>
                     <p>정보를 입력하면 우측 패널에 실시간으로 반영됩니다.</p>
@@ -57,21 +60,35 @@
                     <div class="dynamic-list-wrapper">
                         <div class="list-header">
                             <h3>공고 항목</h3>
-                            <!-- 동적 관리를 위한 버튼 (뼈대) -->
-                            <button type="button" class="add-item-btn">+ 항목 추가</button>
+                            <!-- 동적 관리를 위한 버튼 -->
+                            <div class="list-action-btns">
+                                <button type="button" class="add-item-btn" style="display: none;">+ 항목 추가</button>
+                                <button type="button" class="edit-mode-btn">항목 편집</button>
+                            </div>
                         </div>
                         <div class="dynamic-list">
-                            <div class="list-item">
+                            <div class="list-item" id="editor-target">
+                                <div class="item-header-row">
+                                    <div class="item-label-group">
+                                        <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
+                                        <label for="target">참여 대상</label>
+                                    </div>
+                                    <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                                </div>
                                 <div class="form-group">
-                                    <label for="target">참여 대상</label>
-                                    <input type="text" id="target" placeholder="예: 전국 4년제 대학 재학생 및 휴학생"
-                                        value="전국 4년제 대학 재학생 및 휴학생">
+                                    <input type="text" id="target" placeholder="예: 전국 4년제 대학 재학생 및 휴학생" value="전국 4년제 대학 재학생 및 휴학생">
                                 </div>
                             </div>
 
-                            <div class="list-item">
+                            <div class="list-item" id="editor-date" style="position: relative; z-index: 2;">
+                                <div class="item-header-row">
+                                    <div class="item-label-group">
+                                        <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
+                                        <label class="group-label">진행 일시 <span class="fixed-item-label">(고정 항목)</span></label>
+                                    </div>
+                                    <!-- 진행 일시는 필수 항목이므로 삭제 버튼 제공 안됨 (드래그만 가능) -->
+                                </div>
                                 <div class="form-group form-group--grouped">
-                                    <label class="group-label">진행 일시</label>
                                     <div class="sub-group">
                                         <label for="date-date">날짜</label>
                                         <input type="text" id="date-date" value="2026. 03. 25.(수) / 1일 참여">
@@ -83,30 +100,54 @@
                                 </div>
                             </div>
 
-                            <div class="list-item">
+                            <div class="list-item" id="editor-location">
+                                <div class="item-header-row">
+                                    <div class="item-label-group">
+                                        <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
+                                        <label for="location">진행 장소</label>
+                                    </div>
+                                    <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                                </div>
                                 <div class="form-group">
-                                    <label for="location">진행 장소</label>
                                     <input type="text" id="location" value="강남역 인근 오프라인 리서치 룸 (개별 안내)">
                                 </div>
                             </div>
 
-                            <div class="list-item">
+                            <div class="list-item" id="editor-benefit">
+                                <div class="item-header-row">
+                                    <div class="item-label-group">
+                                        <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
+                                        <label for="benefit">참여 혜택</label>
+                                    </div>
+                                    <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                                </div>
                                 <div class="form-group">
-                                    <label for="benefit">참여 혜택</label>
                                     <input type="text" id="benefit" value="참가비 5만원 + 다과 제공">
                                 </div>
                             </div>
 
-                            <div class="list-item">
+                            <div class="list-item" id="editor-deadline">
+                                <div class="item-header-row">
+                                    <div class="item-label-group">
+                                        <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
+                                        <label for="deadline">신청 마감</label>
+                                    </div>
+                                    <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                                </div>
                                 <div class="form-group">
-                                    <label for="deadline">신청 마감</label>
                                     <input type="text" id="deadline" value="2026. 03. 20.(금) 23:59까지">
                                 </div>
                             </div>
 
-                            <div class="list-item">
+                            <div class="list-item" id="editor-announcement">
+                                <div class="item-header-row">
+                                    <div class="item-label-group">
+                                        <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
+                                        <label for="announcement">참가자 확정 안내</label>
+                                    </div>
+                                    <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                                </div>
                                 <div class="form-group">
-                                    <label for="announcement">참가자 확정 안내</label>
                                     <input type="text" id="announcement" value="2026. 03. 23.(월) 개별 문자 안내">
                                 </div>
                             </div>
@@ -114,11 +155,16 @@
                     </div>
 
                     <div class="form-group notice-group">
-                        <label for="notice">유의사항 (선택사항)</label>
+                        <label for="notice">유의사항</label>
                         <textarea id="notice" rows="3">※ 사전 연락 없이 불참 시 향후 유사 프로젝트 참여가 제한될 수 있습니다.
 ※ 배포된 내용은 연구 목적으로만 활용되며, 외부 유출을 엄격히 금지합니다.</textarea>
                     </div>
+
+                    <div class="form-actions" style="margin-top: 2.5rem; text-align: center; padding-top: 1.5rem; border-top: 1px dashed var(--border-color);">
+                        <button type="button" id="save-data-btn" class="secondary-btn" style="width: 100%; max-width: 250px;">임시저장</button>
+                    </div>
                 </form>
+                </div>
             </div>
         </aside>
 
@@ -146,31 +192,30 @@
                             </div>
 
                             <div class="info-list">
-                                <dl>
+                                <dl id="preview-dl-target">
                                     <dt>참여 대상</dt>
                                     <dd id="preview-target">전국 4년제 대학 재학생 및 휴학생</dd>
                                 </dl>
-                                <dl>
+                                <dl id="preview-dl-date">
                                     <dt>진행 일시</dt>
                                     <dd>
                                         <span id="preview-date-date" class="block-span">2026. 03. 25.(수) / 1일 참여</span>
                                         <span id="preview-date-time" class="block-span">14:00 ~ 16:00 (약 2시간)</span>
                                     </dd>
                                 </dl>
-                                <dl>
+                                <dl id="preview-dl-location">
                                     <dt>진행 장소</dt>
                                     <dd id="preview-location">강남역 인근 오프라인 리서치 룸 (개별 안내)</dd>
                                 </dl>
-                                <dl class="highlight-row">
+                                <dl id="preview-dl-benefit" class="highlight-row">
                                     <dt>참여 혜택</dt>
                                     <dd id="preview-benefit">참가비 5만원 + 다과 제공</dd>
                                 </dl>
-                                <div class="divider"></div>
-                                <dl>
+                                <dl id="preview-dl-deadline">
                                     <dt>신청 마감</dt>
                                     <dd id="preview-deadline" class="semi-bold text-dark">2026. 03. 20.(금) 23:59까지</dd>
                                 </dl>
-                                <dl>
+                                <dl id="preview-dl-announcement">
                                     <dt>확정 안내</dt>
                                     <dd id="preview-announcement">2026. 03. 23.(월) 개별 문자 안내</dd>
                                 </dl>
@@ -193,7 +238,6 @@
             <!-- 하단 액션 버튼 영역 -->
             <div class="preview-actions">
                 <button type="button" id="download-btn" class="download-btn">고해상도 이미지 다운로드</button>
-                <button type="button" class="secondary-btn">임시 저장</button>
             </div>
         </main>
     </div>
