@@ -13,12 +13,6 @@
 </head>
 
 <body>
-    <!-- 규격 초과 경고 팝업 -->
-    <div id="overflow-alert">
-        <span class="alert-icon">⚠️</span>
-        <span id="overflow-alert-msg">콘텐츠가 규격(1350px)을 초과했습니다. 내용을 줄여주세요!</span>
-    </div>
-
     <div class="app-container">
         <!-- 1. 좌측: 빌드 패널 (5) -->
         <aside class="build-panel">
@@ -252,6 +246,11 @@
 
         <!-- 2. 우측: 프리뷰 패널 (5) -->
         <main class="preview-panel">
+            <!-- 규격 초과 알림 바 (Red Notification Bar) -->
+            <div id="overflow-alert">
+                <span class="alert-icon">⚠️</span>
+                <span id="overflow-alert-msg">콘텐츠가 규격을 초과했습니다. 내용을 줄여주세요!</span>
+            </div>
             <!-- 상단 탭 메뉴 -->
             <div class="preview-header">
                 <div class="view-tabs">
@@ -272,51 +271,52 @@
                         <!-- 기존 배너 디자인 뼈대 유지 -->
                         <div class="canvas-top-line"></div>
 
-                        <div class="banner-content">
-                            <div class="banner-header">
-                                <h2 id="preview-title" class="preview-title">[대학생 대상] 20대가 선호하는 브랜드 리서치</h2>
+                        <!-- inner-wrap: 스토리 모드에서 수직 중앙 정렬 대상 -->
+                        <div class="banner-inner-wrap">
+                            <div class="banner-content">
+                                <div class="banner-header">
+                                    <h2 id="preview-title" class="preview-title">[대학생 대상] 20대가 선호하는 브랜드 리서치</h2>
+                                </div>
+
+                                <div class="info-list">
+                                    <dl id="preview-dl-target">
+                                        <dt id="preview-dt-target">참여 대상</dt>
+                                        <dd id="preview-target">전국 4년제 대학 재학생 및 휴학생</dd>
+                                    </dl>
+                                    <dl id="preview-dl-date">
+                                        <dt id="preview-dt-date">진행 일시</dt>
+                                        <dd>
+                                            <span id="preview-date-date" class="block-span">2026. 03. 25.(수) / 1일 참여</span>
+                                            <span id="preview-date-time" class="block-span">14:00 ~ 16:00 (약 2시간)</span>
+                                        </dd>
+                                    </dl>
+                                    <dl id="preview-dl-location">
+                                        <dt id="preview-dt-location">진행 장소</dt>
+                                        <dd id="preview-location">강남역 인근 오프라인 리서치 룸 (개별 안내)</dd>
+                                    </dl>
+                                    <dl id="preview-dl-benefit" class="highlight-row">
+                                        <img id="preview-reward-img" class="reward-img" style="display:none;" src="">
+                                        <dt id="preview-dt-benefit">참여 혜택</dt>
+                                        <dd id="preview-benefit">참가비 5만원 + 다과 제공</dd>
+                                    </dl>
+                                    <dl id="preview-dl-deadline">
+                                        <dt id="preview-dt-deadline">신청 마감</dt>
+                                        <dd id="preview-deadline" class="semi-bold text-dark">2026. 03. 20.(금) 23:59까지</dd>
+                                    </dl>
+                                    <dl id="preview-dl-announcement">
+                                        <dt id="preview-dt-announcement">확정 안내</dt>
+                                        <dd id="preview-announcement">2026. 03. 23.(월) 개별 문자 안내</dd>
+                                    </dl>
+                                </div>
                             </div>
 
-                            <div class="info-list">
-                                <dl id="preview-dl-target">
-                                    <dt id="preview-dt-target">참여 대상</dt>
-                                    <dd id="preview-target">전국 4년제 대학 재학생 및 휴학생</dd>
-                                </dl>
-                                <dl id="preview-dl-date">
-                                    <dt id="preview-dt-date">진행 일시</dt>
-                                    <dd>
-                                        <span id="preview-date-date" class="block-span">2026. 03. 25.(수) / 1일 참여</span>
-                                        <span id="preview-date-time" class="block-span">14:00 ~ 16:00 (약 2시간)</span>
-                                    </dd>
-                                </dl>
-                                <dl id="preview-dl-location">
-                                    <dt id="preview-dt-location">진행 장소</dt>
-                                    <dd id="preview-location">강남역 인근 오프라인 리서치 룸 (개별 안내)</dd>
-                                </dl>
-                                <dl id="preview-dl-benefit" class="highlight-row">
-                                    <img id="preview-reward-img" class="reward-img" style="display:none;" src="">
-                                    <dt id="preview-dt-benefit">참여 혜택</dt>
-                                    <dd id="preview-benefit">참가비 5만원 + 다과 제공</dd>
-                                </dl>
-                                <dl id="preview-dl-deadline">
-                                    <dt id="preview-dt-deadline">신청 마감</dt>
-                                    <dd id="preview-deadline" class="semi-bold text-dark">2026. 03. 20.(금) 23:59까지</dd>
-                                </dl>
-                                <dl id="preview-dl-announcement">
-                                    <dt id="preview-dt-announcement">확정 안내</dt>
-                                    <dd id="preview-announcement">2026. 03. 23.(월) 개별 문자 안내</dd>
-                                </dl>
-                            </div>
-                        
-    </div>
-<div class="banner-footer">
-
-                            <div class="notice-container">
-                                <p id="preview-notice" class="notice-text">※ 사전 연락 없이 불참 시 향후 유사 프로젝트 참여가 제한될 수
-                                    있습니다.<br>※ 배포된 내용은 연구 목적으로만 활용되며, 외부 유출을 엄격히 금지합니다.</p>
-                            </div>
-                            <div class="brand-watermark">
-                                <img src="assets/images/LOGO_20SLAB.png" alt="대학내일20대연구소 공식 로고" class="official-logo">
+                            <div class="banner-footer">
+                                <div class="notice-container">
+                                    <p id="preview-notice" class="notice-text">※ 사전 연락 없이 불참 시 향후 유사 프로젝트 참여가 제한될 수 있습니다.<br>※ 배포된 내용은 연구 목적으로만 활용되며, 외부 유출을 엄격히 금지합니다.</p>
+                                </div>
+                                <div class="brand-watermark">
+                                    <img src="assets/images/LOGO_20SLAB.png" alt="대학내일20대연구소 공식 로고" class="official-logo">
+                                </div>
                             </div>
                         </div>
                     </div>

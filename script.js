@@ -184,8 +184,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             const url = URL.createObjectURL(blob);
                             const link = document.createElement('a');
 
-                            // 파일명 확실하게 명시적 지정
-                            link.download = 'research_banner.png';
+                            // 스마트 파일명 자동 생성: YYMMDD_공고똑낙_feed/story.png
+                            const now = new Date();
+                            const yy  = String(now.getFullYear()).slice(2);
+                            const mm  = String(now.getMonth() + 1).padStart(2, '0');
+                            const dd  = String(now.getDate()).padStart(2, '0');
+                            const modeSuffix = currentMode === 'story' ? 'story' : 'feed';
+                            link.download = `${yy}${mm}${dd}_공고똑낙_${modeSuffix}.png`;
                             link.href = url;
 
                             document.body.appendChild(link);
@@ -864,6 +869,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // canvas-container 비율 전환
             if (canvasContainer) {
                 canvasContainer.classList.toggle('view-story', currentMode === 'story');
+            }
+            // 스토리 모드: banner-canvas에 story-centered 클래스 토글
+            if (bannerCanvas) {
+                bannerCanvas.classList.toggle('story-centered', currentMode === 'story');
             }
 
             // 레이아웃 엔진 재실행 (비율 변경 후 repaint 대기)
