@@ -501,32 +501,116 @@ body {
 .preview-center {
     flex: 1;
     overflow-y: auto;
-    padding: 4rem 3rem;
+    padding: 2rem 3rem 3rem;
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* 캔버스가 길면 스크롤되도록 */
+    align-items: flex-start;
 }
 
 /* 캔버스 그림자 카드 래퍼 */
 .canvas-container {
     width: 100%;
-    max-width: 600px;
-    min-height: 600px;
-    margin: auto;
+    max-width: 480px;
+    margin: 0 auto;
     background-color: var(--panel-bg);
     display: flex;
     flex-direction: column;
-    border-radius: 0.5rem; /* 부드러운 박스 디자인 */
-    box-shadow: var(--shadow-md); /* 캔버스와 배경 대비를 위한 명확한 그림자 */
-    overflow: hidden; /* 테두리 라운딩 적용 시 배너 안쪽 삐져나옴 방지 */
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    /* 기본(피드): 1080:1350 = 4:5 비율 */
+    aspect-ratio: 4 / 5;
+    transition: aspect-ratio 0.4s ease;
 }
+
+/* 스토리 뷰: 1080:1920 = 9:16 비율 */
+.canvas-container.view-story {
+    aspect-ratio: 9 / 16;
+    max-width: 320px;
+}
+
+/* -----------------------------------------------
+   규격 초과 경고 배너 (Overflow Alert)
+----------------------------------------------- */
+#overflow-alert {
+    position: fixed;
+    top: -80px; /* 기본 숨김 상태 */
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #E53737, #FF6B6B);
+    color: #fff;
+    padding: 0.875rem 1.75rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 9999;
+    box-shadow: 0 8px 32px rgba(229, 55, 55, 0.35);
+    transition: top 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+#overflow-alert.is-visible {
+    top: 1.25rem;
+}
+
+#overflow-alert .alert-icon {
+    font-size: 1rem;
+}
+
+/* 규격 초과 시 에디터 인풋 강조 */
+.input-overflow-warning {
+    border-color: #E53737 !important;
+    background-color: rgba(229, 55, 55, 0.04) !important;
+    box-shadow: 0 0 0 2px rgba(229, 55, 55, 0.2) !important;
+    transition: all 0.2s ease;
+}
+
+/* 규격 게이지 바 (캔버스 상단에 표시) */
+.capacity-bar-wrapper {
+    position: relative;
+    width: 100%;
+    height: 4px;
+    background: var(--border-soft);
+    overflow: hidden;
+}
+
+.capacity-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--primary);
+    transition: width 0.3s ease, background-color 0.3s ease;
+    border-radius: 0 2px 2px 0;
+}
+
+.capacity-bar-fill.is-over {
+    background: #E53737;
+}
+
+/* 뷰 탭 모드 배지 (규격 텍스트) */
+.view-mode-badge {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--text-light);
+    background: var(--bg-color);
+    padding: 0.2rem 0.5rem;
+    border-radius: 1rem;
+    margin-left: 0.5rem;
+    letter-spacing: 0.01em;
+    vertical-align: middle;
+}
+
 
 /* -------------------------------------
    실제 렌더링 배너 구조 (.banner-canvas)
 ------------------------------------- */
 .banner-canvas {
+    position: relative;
     width: 100%;
-    height: 100%;
+    min-height: 100%;
     display: flex;
     flex-direction: column;
     background-color: var(--panel-bg);
@@ -800,4 +884,47 @@ body {
     color: var(--text-light);
     text-transform: uppercase;
     letter-spacing: 0.1em;
+}
+/* 리워드 이미지 자동 렌더링 스타일 */
+.reward-img {
+    position: absolute;
+    bottom: 0px;  /* highlight-row 기준 중앙/우측 배치 */
+    right: -1rem; /* 텍스트 시작부에서 좀 떨어져서 보이도록 우측에 배치 */
+    width: 120px;
+    height: auto;
+    object-fit: contain;
+    z-index: 5;
+    /* 추가적인 애니메이션이나 그림자 줘서 예쁘게 */
+    transform: translateY(-0.25rem); /* 살짝 위로 */
+}
+
+/* 템플릿 B에 특화된 포지션(내부 공백이 다를 경우 필요, 지금은 highlight-row 기준이므로 동일) */
+.template-b .reward-img {
+    right: -1.5rem;
+}
+
+/* dl/dd 높이 최대값 지정 (말줄임/폰트 자동 축소 기준점) */
+.info-list dd {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-height: 4.5em; /* 3줄 (1.5 line-height 제한) */
+    overflow: hidden;
+}
+
+
+/* Select and Input Global form elements */
+select.dynamic-title-input,
+select.dynamic-content-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1em;
+    padding-right: 2.5rem;
+}
+
+.custom-title-input {
+    margin-top: 0.5rem;
+    width: 100%;
 }

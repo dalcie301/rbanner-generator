@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const highlightRow = document.querySelector('.highlight-row');
 
     // 텍스트 업데이트 헬퍼
-    const updateText = (previewElement, value, defaultText) => {
+    let updateText = (previewElement, value, defaultText) => {
         if (!previewElement) return;
         previewElement.textContent = value.trim() || defaultText;
     };
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     bindInputToPreview('dateDate', '날짜 미정');
     bindInputToPreview('dateTime', '시간 미정');
     bindInputToPreview('location', '장소 미정');
-    bindInputToPreview('benefit', '혜택 미정');
+    // benefit은 select 드롭다운으로 교체 → updateReward()로 별도 처리
     bindInputToPreview('deadline', '마감일 미정');
     bindInputToPreview('announcement', '안내일 미정');
     bindInputToPreview('notice', '');
@@ -285,7 +285,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="drag-handle" title="드래그하여 이동">
                             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg>
                         </span>
-                        <input type="text" class="dynamic-title-input" placeholder="새로운 항목명 입력" value="">
+                        <select class="preset-title-select dynamic-title-input">
+    <option value="참여 대상">참여 대상</option>
+    <option value="진행 일시">진행 일시</option>
+    <option value="진행 장소">진행 장소</option>
+    <option value="참여 혜택">참여 혜택</option>
+    <option value="신청 마감">신청 마감</option>
+    <option value="참가자 확정 안내">참가자 확정 안내</option>
+    <option value="기타" selected>기타(직접 입력)</option>
+</select>
+<input type="text" class="custom-title-input dynamic-title-input" style="display:block;" placeholder="항목명 입력">
                     </div>
                     <button type="button" class="del-btn" title="항목 삭제">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
@@ -325,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // 추가 시 제목 입력에 포커스
             titleInput.focus();
+            initTitleDropdown(listItem.querySelector('.item-label-group'));
         });
 
         // 이벤트 위임 (Event Delegation) 기반의 항목 삭제 로직
@@ -364,32 +374,67 @@ document.addEventListener('DOMContentLoaded', () => {
                 items: []
             };
 
+            
             const listItems = document.querySelectorAll('.dynamic-list .list-item');
             listItems.forEach(item => {
                 const id = item.id;
+                
+                // Helper to get title (Select vs Custom)
+                const presetSelect = item.querySelector('.preset-title-select');
+                const customInput = item.querySelector('.custom-title-input');
+                let finalTitle = '';
+                let titlePreset = '';
+                if(presetSelect) {
+                    titlePreset = presetSelect.value;
+                    finalTitle = (titlePreset === '기타' && customInput) ? customInput.value : titlePreset;
+                } else {
+                    const fallbackTitle = item.querySelector('.dynamic-title-input');
+                    if (fallbackTitle) finalTitle = fallbackTitle.value;
+                }
+
                 if (id === 'editor-date') {
                     data.items.push({
                         id: id,
                         type: 'date',
+                        titlePreset: titlePreset,
+                        titleContent: finalTitle,
                         dateDate: document.getElementById('date-date').value,
                         dateTime: document.getElementById('date-time').value
                     });
-                } else if (item.querySelector('.dynamic-title-input')) {
-                    // 동적으로 추가된 항목
-                    data.items.push({
-                        id: id,
-                        type: 'dynamic',
-                        title: item.querySelector('.dynamic-title-input').value,
-                        content: item.querySelector('.dynamic-content-input').value
-                    });
-                } else {
-                    // target, location, benefit, deadline, announcement 등 기존 부분
+                } else if (id === 'editor-target' || id === 'editor-location' || id === 'editor-benefit' || id === 'editor-deadline' || id === 'editor-announcement') {
+                    // For static IDs, we also need to get the custom benefit if it's editor-benefit
                     const inputId = id.replace('editor-', '');
+                    let finalContent = '';
+                    let benefitPreset = '';
+                    if (id === 'editor-benefit') {
+                        const benSelect = document.getElementById('benefit');
+                        const benCustom = document.getElementById('benefit-custom');
+                        if (benSelect) {
+                            benefitPreset = benSelect.value;
+                            finalContent = (benefitPreset === '기타' && benCustom) ? benCustom.value : benefitPreset;
+                        }
+                    } else {
+                        const el = document.getElementById(inputId);
+                        if(el) finalContent = el.value;
+                    }
                     data.items.push({
                         id: id,
                         type: 'static',
                         inputId: inputId,
-                        content: document.getElementById(inputId).value
+                        titlePreset: titlePreset,
+                        titleContent: finalTitle,
+                        benefitPreset: benefitPreset,
+                        content: finalContent
+                    });
+                } else {
+                    // 동적으로 추가된 항목
+                    const contentInput = item.querySelector('.dynamic-content-input');
+                    data.items.push({
+                        id: id,
+                        type: 'dynamic',
+                        titlePreset: titlePreset,
+                        titleContent: finalTitle,
+                        content: contentInput ? contentInput.value : ''
                     });
                 }
             });
@@ -440,73 +485,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 2-3. 저장된 순서와 값대로 DOM 재구성
             data.items.forEach(itemData => {
-                if (itemData.type === 'date') {
-                    const domEl = existingDomItems[itemData.id];
-                    const prevEl = existingPreviewItems[itemData.id.replace('editor-', 'preview-dl-')];
-                    if (domEl) {
+                const domEl = existingDomItems[itemData.id];
+                const prevEl = existingPreviewItems[itemData.id.replace('editor-', 'preview-dl-')];
+                
+                if (domEl) {
+                    // Restore title dropdowns
+                    const presetSelect = domEl.querySelector('.preset-title-select');
+                    const customInput = domEl.querySelector('.custom-title-input');
+                    if (presetSelect && itemData.titlePreset) {
+                        presetSelect.value = itemData.titlePreset;
+                        if (itemData.titlePreset === '기타' && customInput) {
+                            customInput.value = itemData.titleContent;
+                            customInput.style.display = 'block';
+                        }
+                    } else if (presetSelect) {
+                        // Fallback for old save structure
+                        presetSelect.value = '기타';
+                        customInput.value = itemData.title || itemData.titleContent;
+                        customInput.style.display = 'block';
+                    }
+
+                    if (itemData.type === 'date') {
                         domEl.querySelector('#date-date').value = itemData.dateDate;
                         domEl.querySelector('#date-time').value = itemData.dateTime;
-                        dynamicList.appendChild(domEl);
+                    } else if (itemData.type === 'static') {
+                        if (itemData.inputId === 'benefit') {
+                            const benSelect = document.getElementById('benefit');
+                            const benCustom = document.getElementById('benefit-custom');
+                            if (benSelect && itemData.benefitPreset !== undefined) {
+                                benSelect.value = itemData.benefitPreset;
+                                if(itemData.benefitPreset === '기타') {
+                                    benCustom.value = itemData.content;
+                                }
+                            }
+                        } else {
+                            setTimeout(() => {
+                                const el = document.getElementById(itemData.inputId);
+                                if(el) el.value = itemData.content;
+                            }, 0);
+                        }
+                    } else if (itemData.type === 'dynamic') {
+                        const contentInput = domEl.querySelector('.dynamic-content-input');
+                        if (contentInput) contentInput.value = itemData.content;
                     }
+                    dynamicList.appendChild(domEl);
                     if (prevEl) infoList.appendChild(prevEl);
-                } else if (itemData.type === 'static') {
-                    const domEl = existingDomItems[itemData.id];
-                    const prevEl = existingPreviewItems[itemData.id.replace('editor-', 'preview-dl-')];
-                    if (domEl) {
-                        domEl.querySelector(`#${itemData.inputId}`).value = itemData.content;
-                        dynamicList.appendChild(domEl);
-                    }
-                    if (prevEl) infoList.appendChild(prevEl);
-                } else if (itemData.type === 'dynamic') {
-                    // 저장된 동적 항목 재생성
-                    const itemIdStr = itemData.id.replace('editor-', ''); 
-                    
-                    const listItem = document.createElement('div');
-                    listItem.className = 'list-item';
-                    listItem.id = `editor-${itemIdStr}`;
-                    listItem.innerHTML = `
-                        <div class="item-header-row">
-                            <div class="item-label-group">
-                                <span class="drag-handle" title="드래그하여 이동">
-                                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg>
-                                </span>
-                                <input type="text" class="dynamic-title-input" placeholder="새로운 항목명 입력" value="${itemData.title}">
-                            </div>
-                            <button type="button" class="del-btn" title="항목 삭제">
-                                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                            </button>
-                        </div>
-                        <div class="form-group">
-                            <input type="text" class="dynamic-content-input" placeholder="내용을 입력하세요" value="${itemData.content}">
-                        </div>
-                    `;
-
-                    const dl = document.createElement('dl');
-                    dl.id = `preview-dl-${itemIdStr}`;
-                    dl.innerHTML = `
-                        <dt>${itemData.title || '새 항목'}</dt>
-                        <dd>${itemData.content || '내용을 입력하세요'}</dd>
-                    `;
-
-                    dynamicList.appendChild(listItem);
-                    infoList.appendChild(dl);
-
-                    // 이벤트 리스너 재부착
-                    const titleInput = listItem.querySelector('.dynamic-title-input');
-                    const contentInput = listItem.querySelector('.dynamic-content-input');
-                    const dt = dl.querySelector('dt');
-                    const dd = dl.querySelector('dd');
-
-                    titleInput.addEventListener('input', (e) => {
-                        dt.textContent = e.target.value.trim() || '새 항목';
-                    });
-                    contentInput.addEventListener('input', (e) => {
-                        dd.textContent = e.target.value.trim() || '내용을 입력하세요';
-                    });
                 }
             });
             
-        } catch(e) {
+            // Dispatch input/change events to refresh UI state immediately
+            setTimeout(() => {
+                document.querySelectorAll('input, select').forEach(el => {
+                    if (el.tagName === 'SELECT') {
+                        el.dispatchEvent(new Event('change'));
+                    } else {
+                        el.dispatchEvent(new Event('input'));
+                    }
+                });
+            }, 10);
+            
+        } catch (e) {
             console.error("Failed to parse local storage data", e);
         }
     };
@@ -528,4 +566,331 @@ document.addEventListener('DOMContentLoaded', () => {
     if (themeColorInput) {
         themeColorInput.dispatchEvent(new Event('input'));
     }
+
+    // --- 3.0 NEW LOGIC ---
+    // 1. 150-char MaxLength on all inputs
+    document.querySelectorAll('.build-col-content input[type="text"], .build-col-content textarea').forEach(el => {
+        if(!el.classList.contains('theme-color')) {
+            el.maxLength = 150;
+            // Prevent pasting large chunks
+            el.addEventListener('input', (e) => {
+                if(e.target.value.length > 150) {
+                    alert('최대 150자까지만 입력 가능합니다.');
+                    e.target.value = e.target.value.substring(0, 150);
+                    // trigger further events
+                    e.target.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+    });
+
+    // 2. Intelligent Auto-Shrink and ellipsis (Adaptive Font)
+    const applyAdaptiveFont = (previewElement) => {
+        if (!previewElement) return;
+        requestAnimationFrame(() => {
+            let minFontSize = 10;
+            let currentSize = parseFloat(window.getComputedStyle(previewElement).fontSize) || 15;
+            let defaultSize = previewElement.dataset.originalSize ? parseFloat(previewElement.dataset.originalSize) : currentSize;
+            if (!previewElement.dataset.originalSize) previewElement.dataset.originalSize = defaultSize;
+
+            previewElement.style.fontSize = defaultSize + 'px';
+            previewElement.style.display = 'block';
+            previewElement.style.webkitLineClamp = 'unset';
+            previewElement.style.maxHeight = '4.5em';
+
+            // While Overflowing
+            while ((previewElement.scrollHeight > previewElement.clientHeight) && currentSize > minFontSize) {
+                currentSize -= 1;
+                previewElement.style.fontSize = currentSize + 'px';
+            }
+
+            // If still overflowing at minFontSize
+            if (previewElement.scrollHeight > previewElement.clientHeight) {
+                previewElement.style.display = '-webkit-box';
+                previewElement.style.webkitLineClamp = '3';
+                previewElement.style.webkitBoxOrient = 'vertical';
+                previewElement.style.overflow = 'hidden';
+                previewElement.style.textOverflow = 'ellipsis';
+            }
+        });
+    };
+
+    // Override existing updateText helper to also call auto shrink
+    const originalUpdateText = updateText;
+    updateText = (previewElement, value, defaultText) => {
+        originalUpdateText(previewElement, value, defaultText);
+        applyAdaptiveFont(previewElement);
+    };
+
+    // Observer to re-apply logic on any dom update in banner-content just in case
+    const observer = new MutationObserver(() => {
+        document.querySelectorAll('.info-list dd, #preview-title').forEach(applyAdaptiveFont);
+    });
+    observer.observe(document.querySelector('.banner-content'), {childList: true, subtree: true, characterData: true});
+
+    // 3. Title Preset Dropdowns (Existing items)
+    const initTitleDropdown = (group) => {
+        const select = group.querySelector('.preset-title-select');
+        const customInput = group.querySelector('.custom-title-input');
+        if (!select || !customInput) return;
+        
+        let previewDt;
+        const dataFor = select.getAttribute('data-for');
+        if (dataFor) {
+            previewDt = document.getElementById('preview-dt-' + dataFor);
+        } else {
+            // For dynamically added items, finding the closest preview dt
+            const listItemId = group.closest('.list-item').id;
+            const dtId = listItemId.replace('editor-', 'preview-dl-');
+            const previewDl = document.getElementById(dtId);
+            if(previewDl) previewDt = previewDl.querySelector('dt');
+        }
+        
+        const updateTitle = () => {
+            const val = select.value;
+            if (val === '기타') {
+                customInput.style.display = 'block';
+                if(previewDt) previewDt.textContent = customInput.value.trim() || '입력 안됨';
+            } else {
+                customInput.style.display = 'none';
+                if(previewDt) previewDt.textContent = val;
+            }
+            if(previewDt) applyAdaptiveFont(previewDt);
+        };
+
+        select.addEventListener('change', updateTitle);
+        customInput.addEventListener('input', updateTitle);
+        updateTitle();
+    };
+    document.querySelectorAll('.item-label-group').forEach(initTitleDropdown);
+
+    // 4. Reward Image Mapping Logic
+    const rewardImages = {
+        '네이버페이 3천원(전원)': 'assets/images/Reward_naverpay_3000.png',
+        '네이버페이 5천원(전원)': 'assets/images/Reward_naverpay_5000.png',
+        '커리어톡 3천원(전원)': 'assets/images/Reward_careertalk_3000.png',
+        '커리어톡 5천원(전원)': 'assets/images/Reward_careertalk_5000.png'
+    };
+    const benefitSelect = document.getElementById('benefit');
+    const benefitCustom = document.getElementById('benefit-custom');
+    const previewRewardImg = document.getElementById('preview-reward-img');
+    const previewBenefitDd = document.getElementById('preview-benefit');
+
+    if(benefitSelect && benefitCustom) {
+        const updateReward = () => {
+            const val = benefitSelect.value;
+            if (val === '기타') {
+                benefitCustom.style.display = 'block';
+                previewRewardImg.style.display = 'none';
+                updateText(previewBenefitDd, benefitCustom.value, '혜택 미정');
+            } else if (val === '') {
+                benefitCustom.style.display = 'none';
+                previewRewardImg.style.display = 'none';
+                updateText(previewBenefitDd, '', ''); 
+            } else {
+                benefitCustom.style.display = 'none';
+                updateText(previewBenefitDd, val, '혜택 미정');
+                if(rewardImages[val]) {
+                    previewRewardImg.src = rewardImages[val];
+                    previewRewardImg.style.display = 'block';
+                } else {
+                    previewRewardImg.style.display = 'none';
+                }
+            }
+        };
+        benefitSelect.addEventListener('change', updateReward);
+        benefitCustom.addEventListener('input', updateReward);
+        updateReward();
+    }
+
+    // ==========================================================
+    // 🎯 지능형 레이아웃 엔진 v3.0
+    //    Feed(1080×1350) / Story(1080×1920) 규격 엄격 관리
+    // ==========================================================
+
+    const CANVAS_NATIVE_WIDTH = 1080;
+    const VIEW_SPECS = {
+        feed:  { px: 1350, label: '1350px', ratio: '4 / 5' },
+        story: { px: 1920, label: '1920px', ratio: '9 / 16' }
+    };
+
+    // 타겟 픽셀 → 화면 렌더링 환산 비율 (canvas 표시 너비 기준)
+    const getScaleRatio = () => {
+        const renderedWidth = bannerCanvas.getBoundingClientRect().width;
+        return renderedWidth / CANVAS_NATIVE_WIDTH;
+    };
+
+    let currentMode = 'feed';
+    let targetPx = VIEW_SPECS.feed.px;
+
+    /* ----- 원본(Initial) 값 캐시 ----- */
+    const ORIGINAL = {
+        titleFontSize: 36,       // px  (2.25rem ≈ 36px)
+        titleFontSizeMin: 28,    // 48px 네이티브 → 스케일 반영 (실제 픽셀은 스케일 후 체크)
+        dlPadding: 18,           // px  (1.125rem)
+        dlPaddingMin: 6,         // px
+        bannerPadding: 48,       // px  (3rem top/side)
+        bannerPaddingMin: 20,    // px
+        footerPadding: 48,       // px
+        footerPaddingMin: 20,    // px
+        bannerHeaderMargin: 40,  // px  (2.5rem)
+        bannerHeaderMarginMin: 12,
+        ddFontSize: 17,          // px  (1.0625rem)
+        ddFontSizeMin: 10        // px
+    };
+
+    /* ----- UI 요소 참조 ----- */
+    const canvasContainer = document.getElementById('canvas-container');
+    const capacityBar     = document.getElementById('capacity-bar');
+    const overflowAlert   = document.getElementById('overflow-alert');
+    const overflowMsg     = document.getElementById('overflow-alert-msg');
+    const previewTitle    = document.getElementById('preview-title');
+    const bannerContent   = document.querySelector('.banner-content');
+    const bannerFooter    = document.querySelector('.banner-footer');
+    const bannerHeader    = document.querySelector('.banner-header');
+    const infoListDls     = () => document.querySelectorAll('.info-list dl');
+    const infoListDds     = () => document.querySelectorAll('.info-list dd');
+
+    /* ------------------------------------------------
+       메인 최적화 루프 (단계별)
+    ------------------------------------------------- */
+    const runLayoutEngine = () => {
+        if (!bannerCanvas || !bannerContent) return;
+
+        // ── 모든 값을 최초값으로 리셋 ──
+        previewTitle.style.fontSize = ORIGINAL.titleFontSize + 'px';
+        bannerContent.style.padding = `${ORIGINAL.bannerPadding}px`;
+        bannerFooter.style.padding  = `${ORIGINAL.footerPadding}px ${ORIGINAL.bannerPadding}px`;
+        bannerHeader.style.marginBottom = ORIGINAL.bannerHeaderMargin + 'px';
+        infoListDls().forEach(dl => {
+            dl.style.paddingTop    = ORIGINAL.dlPadding + 'px';
+            dl.style.paddingBottom = ORIGINAL.dlPadding + 'px';
+        });
+        infoListDds().forEach(dd => dd.style.fontSize = '');
+
+        // 현재 실제 콘텐츠 높이 (scroll height = overflow 포함 전체 높이)
+        const getCurrentH = () => bannerCanvas.scrollHeight;
+
+        // 화면에 보이는 영역 높이 (canvas-container의 aspect-ratio에 의해 결정)
+        const targetRendered = canvasContainer ? canvasContainer.getBoundingClientRect().height : canvas.getBoundingClientRect().height;
+
+        // ── 1단계: 제목 폰트 축소 (36px → 28px, 1px씩) ──
+        let titlePx = ORIGINAL.titleFontSize;
+        while (getCurrentH() > targetRendered && titlePx > ORIGINAL.titleFontSizeMin) {
+            titlePx -= 1;
+            previewTitle.style.fontSize = titlePx + 'px';
+        }
+
+        // ── 2단계: 간격/패딩 축소 ──
+        if (getCurrentH() > targetRendered) {
+            let dlPad       = ORIGINAL.dlPadding;
+            let contentPad  = ORIGINAL.bannerPadding;
+            let footerPad   = ORIGINAL.footerPadding;
+            let headerMb    = ORIGINAL.bannerHeaderMargin;
+
+            while (getCurrentH() > targetRendered &&
+                   (dlPad > ORIGINAL.dlPaddingMin ||
+                    contentPad > ORIGINAL.bannerPaddingMin ||
+                    headerMb > ORIGINAL.bannerHeaderMarginMin)) {
+
+                if (dlPad > ORIGINAL.dlPaddingMin) {
+                    dlPad = Math.max(ORIGINAL.dlPaddingMin, dlPad - 1);
+                    infoListDls().forEach(dl => {
+                        dl.style.paddingTop    = dlPad + 'px';
+                        dl.style.paddingBottom = dlPad + 'px';
+                    });
+                }
+                if (contentPad > ORIGINAL.bannerPaddingMin) {
+                    contentPad = Math.max(ORIGINAL.bannerPaddingMin, contentPad - 2);
+                    bannerContent.style.padding = `${contentPad}px`;
+                }
+                if (footerPad > ORIGINAL.footerPaddingMin) {
+                    footerPad = Math.max(ORIGINAL.footerPaddingMin, footerPad - 2);
+                    bannerFooter.style.padding = `${footerPad}px ${contentPad}px`;
+                }
+                if (headerMb > ORIGINAL.bannerHeaderMarginMin) {
+                    headerMb = Math.max(ORIGINAL.bannerHeaderMarginMin, headerMb - 1);
+                    bannerHeader.style.marginBottom = headerMb + 'px';
+                }
+            }
+        }
+
+        // ── 3단계: 본문 폰트 축소 ──
+        if (getCurrentH() > targetRendered) {
+            let ddPx = ORIGINAL.ddFontSize;
+            while (getCurrentH() > targetRendered && ddPx > ORIGINAL.ddFontSizeMin) {
+                ddPx -= 1;
+                infoListDds().forEach(dd => dd.style.fontSize = ddPx + 'px');
+            }
+        }
+
+        // ── 용량 게이지 & 경고 업데이트 ──
+        const finalH   = getCurrentH();
+        const ratio    = Math.min((finalH / targetRendered) * 100, 120);
+        const isOver   = finalH > targetRendered + 1;
+
+        if (capacityBar) {
+            capacityBar.style.width = Math.min(ratio, 100) + '%';
+            capacityBar.classList.toggle('is-over', isOver);
+        }
+
+        if (overflowAlert) {
+            if (isOver) {
+                overflowMsg.textContent =
+                    `콘텐츠가 규격(${VIEW_SPECS[currentMode].label})을 초과했습니다. 내용을 줄여주세요!`;
+                overflowAlert.classList.add('is-visible');
+                // 모든 편집 인풋에 빨간 테두리 강조
+                document.querySelectorAll(
+                    '.build-col-content input[type="text"], .build-col-content textarea, .build-col-content select'
+                ).forEach(el => el.classList.add('input-overflow-warning'));
+            } else {
+                overflowAlert.classList.remove('is-visible');
+                document.querySelectorAll('.input-overflow-warning')
+                    .forEach(el => el.classList.remove('input-overflow-warning'));
+            }
+        }
+    };
+
+    /* ----- 뷰탭 전환 로직 (기존 탭과 통합) ----- */
+    const viewTabs = document.querySelectorAll('.view-tab');
+    viewTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            viewTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            currentMode = tab.dataset.mode || 'feed';
+            targetPx    = VIEW_SPECS[currentMode].px;
+
+            // canvas-container 비율 전환
+            if (canvasContainer) {
+                canvasContainer.classList.toggle('view-story', currentMode === 'story');
+            }
+
+            // 레이아웃 엔진 재실행 (비율 변경 후 repaint 대기)
+            requestAnimationFrame(() => setTimeout(runLayoutEngine, 50));
+        });
+    });
+
+    /* ----- 모든 편집 입력에 엔진 트리거 연동 ----- */
+    const triggerEngine = () => requestAnimationFrame(runLayoutEngine);
+
+    // 기존 폼 인풋
+    document.querySelectorAll(
+        '#banner-form input, #banner-form textarea, #banner-form select'
+    ).forEach(el => {
+        el.addEventListener('input', triggerEngine);
+        el.addEventListener('change', triggerEngine);
+    });
+
+    // 동적 항목 추가/삭제 감지용 MutationObserver (infoList)
+    if (infoList) {
+        new MutationObserver(triggerEngine).observe(infoList, { childList: true, subtree: true });
+    }
+
+    // 초기 1회 실행 (로딩 완료 후)
+    requestAnimationFrame(() => setTimeout(runLayoutEngine, 100));
+
+    // 윈도우 리사이즈 시 재실행
+    window.addEventListener('resize', triggerEngine);
+
 });

@@ -13,6 +13,12 @@
 </head>
 
 <body>
+    <!-- 규격 초과 경고 팝업 -->
+    <div id="overflow-alert">
+        <span class="alert-icon">⚠️</span>
+        <span id="overflow-alert-msg">콘텐츠가 규격(1350px)을 초과했습니다. 내용을 줄여주세요!</span>
+    </div>
+
     <div class="app-container">
         <!-- 1. 좌측: 빌드 패널 (5) -->
         <aside class="build-panel">
@@ -71,7 +77,18 @@
                                 <div class="item-header-row">
                                     <div class="item-label-group">
                                         <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
-                                        <label for="target">참여 대상</label>
+                                        
+<select class="preset-title-select dynamic-title-input" data-for="target">
+    <option value="참여 대상" selected>참여 대상</option>
+    <option value="진행 일시">진행 일시</option>
+    <option value="진행 장소">진행 장소</option>
+    <option value="참여 혜택">참여 혜택</option>
+    <option value="신청 마감">신청 마감</option>
+    <option value="참가자 확정 안내">참가자 확정 안내</option>
+    <option value="기타">기타(직접 입력)</option>
+</select>
+<input type="text" class="custom-title-input dynamic-title-input" style="display:none;" placeholder="항목명 입력">
+
                                     </div>
                                     <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
                                 </div>
@@ -84,7 +101,18 @@
                                 <div class="item-header-row">
                                     <div class="item-label-group">
                                         <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
-                                        <label class="group-label">진행 일시 <span class="fixed-item-label">(고정 항목)</span></label>
+                                        
+<select class="preset-title-select dynamic-title-input" data-for="date">
+    <option value="참여 대상">참여 대상</option>
+    <option value="진행 일시" selected>진행 일시</option>
+    <option value="진행 장소">진행 장소</option>
+    <option value="참여 혜택">참여 혜택</option>
+    <option value="신청 마감">신청 마감</option>
+    <option value="참가자 확정 안내">참가자 확정 안내</option>
+    <option value="기타">기타(직접 입력)</option>
+</select>
+<input type="text" class="custom-title-input dynamic-title-input" style="display:none;" placeholder="항목명 입력">
+<span class="fixed-item-label">(고정 항목)</span>
                                     </div>
                                     <!-- 진행 일시는 필수 항목이므로 삭제 버튼 제공 안됨 (드래그만 가능) -->
                                 </div>
@@ -104,7 +132,18 @@
                                 <div class="item-header-row">
                                     <div class="item-label-group">
                                         <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
-                                        <label for="location">진행 장소</label>
+                                        
+<select class="preset-title-select dynamic-title-input" data-for="location">
+    <option value="참여 대상">참여 대상</option>
+    <option value="진행 일시">진행 일시</option>
+    <option value="진행 장소" selected>진행 장소</option>
+    <option value="참여 혜택">참여 혜택</option>
+    <option value="신청 마감">신청 마감</option>
+    <option value="참가자 확정 안내">참가자 확정 안내</option>
+    <option value="기타">기타(직접 입력)</option>
+</select>
+<input type="text" class="custom-title-input dynamic-title-input" style="display:none;" placeholder="항목명 입력">
+
                                     </div>
                                     <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
                                 </div>
@@ -117,12 +156,33 @@
                                 <div class="item-header-row">
                                     <div class="item-label-group">
                                         <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
-                                        <label for="benefit">참여 혜택</label>
+                                        
+<select class="preset-title-select dynamic-title-input" data-for="benefit">
+    <option value="참여 대상">참여 대상</option>
+    <option value="진행 일시">진행 일시</option>
+    <option value="진행 장소">진행 장소</option>
+    <option value="참여 혜택" selected>참여 혜택</option>
+    <option value="신청 마감">신청 마감</option>
+    <option value="참가자 확정 안내">참가자 확정 안내</option>
+    <option value="기타">기타(직접 입력)</option>
+</select>
+<input type="text" class="custom-title-input dynamic-title-input" style="display:none;" placeholder="항목명 입력">
+
                                     </div>
                                     <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
                                 </div>
                                 <div class="form-group">
-                                    <input type="text" id="benefit" value="참가비 5만원 + 다과 제공">
+                                    
+<select id="benefit" class="reward-select dynamic-content-input">
+    <option value="">리워드 선택 안함</option>
+    <option value="네이버페이 3천원(전원)">네이버페이 3천원(전원)</option>
+    <option value="네이버페이 5천원(전원)">네이버페이 5천원(전원)</option>
+    <option value="커리어톡 3천원(전원)">커리어톡 3천원(전원)</option>
+    <option value="커리어톡 5천원(전원)">커리어톡 5천원(전원)</option>
+    <option value="기타" selected>기타(직접 입력)</option>
+</select>
+<input type="text" id="benefit-custom" placeholder="기타 혜택 입력" value="참가비 5만원 + 다과 제공" style="margin-top: 0.5rem; width: 100%;">
+
                                 </div>
                             </div>
 
@@ -130,7 +190,18 @@
                                 <div class="item-header-row">
                                     <div class="item-label-group">
                                         <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
-                                        <label for="deadline">신청 마감</label>
+                                        
+<select class="preset-title-select dynamic-title-input" data-for="deadline">
+    <option value="참여 대상">참여 대상</option>
+    <option value="진행 일시">진행 일시</option>
+    <option value="진행 장소">진행 장소</option>
+    <option value="참여 혜택">참여 혜택</option>
+    <option value="신청 마감" selected>신청 마감</option>
+    <option value="참가자 확정 안내">참가자 확정 안내</option>
+    <option value="기타">기타(직접 입력)</option>
+</select>
+<input type="text" class="custom-title-input dynamic-title-input" style="display:none;" placeholder="항목명 입력">
+
                                     </div>
                                     <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
                                 </div>
@@ -143,7 +214,18 @@
                                 <div class="item-header-row">
                                     <div class="item-label-group">
                                         <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
-                                        <label for="announcement">참가자 확정 안내</label>
+                                        
+<select class="preset-title-select dynamic-title-input" data-for="announcement">
+    <option value="참여 대상">참여 대상</option>
+    <option value="진행 일시">진행 일시</option>
+    <option value="진행 장소">진행 장소</option>
+    <option value="참여 혜택">참여 혜택</option>
+    <option value="신청 마감">신청 마감</option>
+    <option value="참가자 확정 안내" selected>참가자 확정 안내</option>
+    <option value="기타">기타(직접 입력)</option>
+</select>
+<input type="text" class="custom-title-input dynamic-title-input" style="display:none;" placeholder="항목명 입력">
+
                                     </div>
                                     <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
                                 </div>
@@ -173,14 +255,18 @@
             <!-- 상단 탭 메뉴 -->
             <div class="preview-header">
                 <div class="view-tabs">
-                    <button class="view-tab active">피드 보기</button>
-                    <button class="view-tab">스토리 보기</button>
+                    <button class="view-tab active" data-mode="feed">피드 보기 <span class="view-mode-badge">1080×1350</span></button>
+                    <button class="view-tab" data-mode="story">스토리 보기 <span class="view-mode-badge">1080×1920</span></button>
                 </div>
             </div>
 
             <!-- 중앙 캔버스 영역 -->
             <div class="preview-center">
-                <div class="canvas-container shadow-card">
+                <div class="canvas-container shadow-card" id="canvas-container">
+                    <!-- 용량 게이지 바 -->
+                    <div class="capacity-bar-wrapper">
+                        <div class="capacity-bar-fill" id="capacity-bar"></div>
+                    </div>
                     <!-- 템플릿 로직이 반영되는 컨테이너 -->
                     <div id="banner-canvas" class="banner-canvas template-a">
                         <!-- 기존 배너 디자인 뼈대 유지 -->
@@ -193,36 +279,38 @@
 
                             <div class="info-list">
                                 <dl id="preview-dl-target">
-                                    <dt>참여 대상</dt>
+                                    <dt id="preview-dt-target">참여 대상</dt>
                                     <dd id="preview-target">전국 4년제 대학 재학생 및 휴학생</dd>
                                 </dl>
                                 <dl id="preview-dl-date">
-                                    <dt>진행 일시</dt>
+                                    <dt id="preview-dt-date">진행 일시</dt>
                                     <dd>
                                         <span id="preview-date-date" class="block-span">2026. 03. 25.(수) / 1일 참여</span>
                                         <span id="preview-date-time" class="block-span">14:00 ~ 16:00 (약 2시간)</span>
                                     </dd>
                                 </dl>
                                 <dl id="preview-dl-location">
-                                    <dt>진행 장소</dt>
+                                    <dt id="preview-dt-location">진행 장소</dt>
                                     <dd id="preview-location">강남역 인근 오프라인 리서치 룸 (개별 안내)</dd>
                                 </dl>
                                 <dl id="preview-dl-benefit" class="highlight-row">
-                                    <dt>참여 혜택</dt>
+                                    <img id="preview-reward-img" class="reward-img" style="display:none;" src="">
+                                    <dt id="preview-dt-benefit">참여 혜택</dt>
                                     <dd id="preview-benefit">참가비 5만원 + 다과 제공</dd>
                                 </dl>
                                 <dl id="preview-dl-deadline">
-                                    <dt>신청 마감</dt>
+                                    <dt id="preview-dt-deadline">신청 마감</dt>
                                     <dd id="preview-deadline" class="semi-bold text-dark">2026. 03. 20.(금) 23:59까지</dd>
                                 </dl>
                                 <dl id="preview-dl-announcement">
-                                    <dt>확정 안내</dt>
+                                    <dt id="preview-dt-announcement">확정 안내</dt>
                                     <dd id="preview-announcement">2026. 03. 23.(월) 개별 문자 안내</dd>
                                 </dl>
                             </div>
-                        </div>
+                        
+    </div>
+<div class="banner-footer">
 
-                        <div class="banner-footer">
                             <div class="notice-container">
                                 <p id="preview-notice" class="notice-text">※ 사전 연락 없이 불참 시 향후 유사 프로젝트 참여가 제한될 수
                                     있습니다.<br>※ 배포된 내용은 연구 목적으로만 활용되며, 외부 유출을 엄격히 금지합니다.</p>
