@@ -638,9 +638,15 @@ body {
 }
 
 .banner-content {
+    flex: 1; /* 피드 모드: 콘텐츠 영역이 확장되어 푸터가 정확히 하단에 밀착되게 함 */
     padding: 3rem 3rem 1.5rem;
     display: flex;
     flex-direction: column;
+}
+
+/* 스토리 모드 한정: flex: 1을 해제하여 전체 콘텐츠(header~footer)가 하나로 묶인 뒤 중앙 정렬되도록 함 */
+.banner-canvas.story-centered .banner-content {
+    flex: none;
 }
 
 .banner-header { margin-bottom: 2.5rem; }
