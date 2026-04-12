@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     // 폼 요소 선택
     const inputs = {
-        title: document.getElementById('title'),
+        titleLine1: document.getElementById('title-line1'),
+        titleLine2: document.getElementById('title-line2'),
         target: document.getElementById('target'),
         dateDate: document.getElementById('date-date'),
         dateTime: document.getElementById('date-time'),
@@ -14,7 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 미리보기(캔버스) 요소 선택
     const previews = {
-        title: document.getElementById('preview-title'),
+        titleLine1: document.getElementById('preview-title-line1'),
+        titleLine2: document.getElementById('preview-title-line2'),
         target: document.getElementById('preview-target'),
         dateDate: document.getElementById('preview-date-date'),
         dateTime: document.getElementById('preview-date-time'),
@@ -27,7 +29,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const themeColorInput = document.getElementById('theme-color');
     const root = document.documentElement;
-    const highlightRow = document.querySelector('.highlight-row');
+
+    // 현재 강조된 preview-dl ID
+    let currentHighlightId = null;
+
+    // 유동 하이라이트 적용 함수 (한 번에 하나만 강조)
+    const applyHighlight = (previewDlId) => {
+        // 1. 모든 dl에서 highlight-row 제거
+        document.querySelectorAll('.info-list dl.highlight-row').forEach(dl => {
+            dl.classList.remove('highlight-row');
+        });
+        // 2. 모든 체크박스 해제
+        document.querySelectorAll('.highlight-checkbox').forEach(cb => {
+            cb.checked = false;
+        });
+
+        currentHighlightId = previewDlId;
+        if (!previewDlId) return;
+
+        // 3. 지정된 dl에 highlight-row 클래스 적용
+        const targetDl = document.getElementById(previewDlId);
+        if (targetDl) targetDl.classList.add('highlight-row');
+
+        // 4. 해당 편집 체크박스를 체크 상태로 (editor ID 연산)
+        const editorId = previewDlId.replace('preview-dl-', 'editor-');
+        const editorItem = document.getElementById(editorId);
+        if (editorItem) {
+            const cb = editorItem.querySelector('.highlight-checkbox');
+            if (cb) cb.checked = true;
+        }
+    };
 
     // 텍스트 업데이트 헬퍼
     let updateText = (previewElement, value, defaultText) => {
@@ -44,7 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    bindInputToPreview('title', '리서치 제목을 입력하세요');
+    bindInputToPreview('titleLine1', '리서치 제목 첫번째 줄을 입력하세요');
+    bindInputToPreview('titleLine2', '');
     bindInputToPreview('target', '입력 없음');
     bindInputToPreview('dateDate', '날짜 미정');
     bindInputToPreview('dateTime', '시간 미정');
@@ -72,11 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
     themeColorInput.addEventListener('input', (e) => {
         const color = e.target.value;
         root.style.setProperty('--primary', color);
-
-        // 하이라이트 배경색(alpha값 사용)
-        if (highlightRow) {
-            highlightRow.style.backgroundColor = hex2rgba(color, 0.04);
-        }
     });
 
     // 초기 색상 세팅 (초기 로딩 시 한번 실행하여 rgba 배경 처리)
@@ -108,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 기존 템플릿 클래스 삭제 후 새로운 템플릿 할당
                 const targetTpl = clickedBtn.dataset.tpl; // 'template-a' 또는 'template-b'
                 bannerCanvas.classList.remove('template-a', 'template-b');
-                
+
                 // 로고 스위칭 처리
                 const logoImg = document.querySelector('.brand-watermark .official-logo');
                 if (targetTpl === 'template-b') {
@@ -186,11 +213,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             // 스마트 파일명 자동 생성: YYMMDD_공고똑낙_feed/story.png
                             const now = new Date();
-                            const yy  = String(now.getFullYear()).slice(2);
-                            const mm  = String(now.getMonth() + 1).padStart(2, '0');
-                            const dd  = String(now.getDate()).padStart(2, '0');
+                            const yy = String(now.getFullYear()).slice(2);
+                            const mm = String(now.getMonth() + 1).padStart(2, '0');
+                            const dd = String(now.getDate()).padStart(2, '0');
                             const modeSuffix = currentMode === 'story' ? 'story' : 'feed';
-                            link.download = `${yy}${mm}${dd}_공고똑낙_${modeSuffix}.png`;
+                            link.download = `${yy}${mm}${dd}_공고뚝딱_${modeSuffix}.png`;
                             link.href = url;
 
                             document.body.appendChild(link);
@@ -225,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const editModeBtn = document.querySelector('.edit-mode-btn');
     const infoList = document.querySelector('.info-list');
     const buildColContent = document.querySelector('.build-col-content');
-    
+
     let dynamicIdCounter = 0;
     let sortableInstance = null;
     let isEditMode = false;
@@ -240,7 +267,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 editModeBtn.classList.add('active');
                 addItemBtn.style.display = 'block';
                 buildColContent.classList.add('edit-mode-active');
-                
+
+                // 디자인 및 표시 변경은 CSS(.edit-mode-active)로 자동 위임됨
+
                 if (!sortableInstance && typeof Sortable !== 'undefined') {
                     sortableInstance = Sortable.create(dynamicList, {
                         handle: '.drag-handle',
@@ -252,7 +281,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const previewId = listItem.id.replace('editor-', 'preview-dl-');
                                 const previewDl = document.getElementById(previewId);
                                 if (previewDl) {
-                                    // appendChild는 기존 요소를 떼어내어 맨 뒤로 이동시킴 (결과적으로 동기화됨)
                                     infoList.appendChild(previewDl);
                                 }
                             });
@@ -267,6 +295,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 editModeBtn.classList.remove('active');
                 addItemBtn.style.display = 'none';
                 buildColContent.classList.remove('edit-mode-active');
+
+                // 디자인 및 표시 변경은 CSS(.edit-mode-active)로 자동 위임됨
+
                 if (sortableInstance) {
                     sortableInstance.option('disabled', true);
                 }
@@ -277,6 +308,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // 항목 추가 동작 (편집 모드에서만 보임)
     if (addItemBtn && dynamicList && infoList) {
         addItemBtn.addEventListener('click', () => {
+            // 남은 기본 항목을 찾아서 새 항목의 기본값으로 세팅
+            const PRESET_ORDER = ['참여 대상', '진행 일시', '진행 장소', '참여 혜택', '신청 마감', '참가자 확정'];
+            let nextPreset = '기타';
+            for (const p of PRESET_ORDER) {
+                let exists = false;
+                document.querySelectorAll('.preset-title-select').forEach(sel => {
+                    if (sel.value === p) exists = true;
+                });
+                if (!exists) {
+                    nextPreset = p;
+                    break;
+                }
+            }
+
             dynamicIdCounter++;
             const itemId = `dynamic-item-${dynamicIdCounter}`;
 
@@ -290,17 +335,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="drag-handle" title="드래그하여 이동">
                             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg>
                         </span>
+                        <span class="display-title-text"></span>
                         <select class="preset-title-select dynamic-title-input">
-    <option value="참여 대상">참여 대상</option>
-    <option value="진행 일시">진행 일시</option>
-    <option value="진행 장소">진행 장소</option>
-    <option value="참여 혜택">참여 혜택</option>
-    <option value="신청 마감">신청 마감</option>
-    <option value="참가자 확정 안내">참가자 확정 안내</option>
-    <option value="기타" selected>기타(직접 입력)</option>
-</select>
-<input type="text" class="custom-title-input dynamic-title-input" style="display:block;" placeholder="항목명 입력">
+                            <option value="참여 대상">참여 대상</option>
+                            <option value="진행 일시">진행 일시</option>
+                            <option value="진행 장소">진행 장소</option>
+                            <option value="참여 혜택">참여 혜택</option>
+                            <option value="신청 마감">신청 마감</option>
+                            <option value="참가자 확정">참가자 확정</option>
+                            <option value="기타">기타(직접 입력)</option>
+                        </select>
+                        <input type="text" class="custom-title-input dynamic-title-input" placeholder="항목명 입력">
                     </div>
+                    <label class="highlight-toggle" title="강조 항목 지정">
+                        <input type="checkbox" class="highlight-checkbox">
+                        <span class="highlight-toggle-icon">★</span>
+                    </label>
                     <button type="button" class="del-btn" title="항목 삭제">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                     </button>
@@ -320,9 +370,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 맨 위(진행 일시 등 다른 요소 고려 안함, 편집 추가는 최상단 원칙이므로 일단 prepend)
             // 단, editor-date가 만약 고정형이라면 그 바로 위나 아래로?
-            // 기존 요구사항에 따라 prepend(맨위) 유지. 
+            // prepend(맨위) 유지
             dynamicList.prepend(listItem);
             infoList.prepend(dl);
+            
+            // 프리셋 기본값 지정
+            const presetSelect = listItem.querySelector('.preset-title-select');
+            if (presetSelect) presetSelect.value = nextPreset;
 
             // 실시간 연동 (onInput)
             const titleInput = listItem.querySelector('.dynamic-title-input');
@@ -336,7 +390,15 @@ document.addEventListener('DOMContentLoaded', () => {
             contentInput.addEventListener('input', (e) => {
                 dd.textContent = e.target.value.trim() || '내용을 입력하세요';
             });
-            
+
+            // 강조 체크박스 연동
+            const highlightCheckbox = listItem.querySelector('.highlight-checkbox');
+            if (highlightCheckbox) {
+                highlightCheckbox.addEventListener('change', () => {
+                    applyHighlight(highlightCheckbox.checked ? dl.id : null);
+                });
+            }
+
             // 추가 시 제목 입력에 포커스
             titleInput.focus();
             initTitleDropdown(listItem.querySelector('.item-label-group'));
@@ -348,10 +410,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (delBtn) {
                 const listItem = delBtn.closest('.list-item');
                 // 진행 일시(editor-date)는 삭제 예외 처리 (UI에 버튼은 없지만 2중 방어)
-                if (listItem && listItem.id !== 'editor-date') { 
+                if (listItem && listItem.id !== 'editor-date') {
                     const previewId = listItem.id.replace('editor-', 'preview-dl-');
                     const previewElement = document.getElementById(previewId);
-                    
+
                     // DOM에서 제거
                     listItem.remove();
                     if (previewElement) previewElement.remove();
@@ -359,6 +421,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // 정적 항목(HTML에 하드코딩된 항목)의 강조 체크박스 이벤트 등록
+    document.querySelectorAll('.highlight-checkbox[data-preview-id]').forEach(cb => {
+        cb.addEventListener('change', () => {
+            applyHighlight(cb.checked ? cb.dataset.previewId : null);
+        });
+    });
 
     // ---------------------------------------------
     // 임시 저장 (LocalStorage) 구현
@@ -370,7 +439,8 @@ document.addEventListener('DOMContentLoaded', () => {
         saveDataBtn.addEventListener('click', () => {
             const data = {
                 settings: {
-                    title: inputs.title.value,
+                    titleLine1: inputs.titleLine1.value,
+                    titleLine2: inputs.titleLine2.value,
                     themeColor: themeColorInput.value,
                     notice: inputs.notice.value,
                     template: document.querySelector('.tpl-btn.active').dataset.tpl,
@@ -379,17 +449,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 items: []
             };
 
-            
+
             const listItems = document.querySelectorAll('.dynamic-list .list-item');
             listItems.forEach(item => {
                 const id = item.id;
-                
+
                 // Helper to get title (Select vs Custom)
                 const presetSelect = item.querySelector('.preset-title-select');
                 const customInput = item.querySelector('.custom-title-input');
                 let finalTitle = '';
                 let titlePreset = '';
-                if(presetSelect) {
+                if (presetSelect) {
                     titlePreset = presetSelect.value;
                     finalTitle = (titlePreset === '기타' && customInput) ? customInput.value : titlePreset;
                 } else {
@@ -420,7 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     } else {
                         const el = document.getElementById(inputId);
-                        if(el) finalContent = el.value;
+                        if (el) finalContent = el.value;
                     }
                     data.items.push({
                         id: id,
@@ -445,13 +515,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             localStorage.setItem('bannerMakerData', JSON.stringify(data));
-            
+
             // UX 피드백: 알럿 대신 버튼 텍스트 변경
             const originalText = saveDataBtn.textContent;
             saveDataBtn.textContent = '저장 완료! ✅';
             saveDataBtn.style.backgroundColor = '#4CAF50';
             saveDataBtn.style.color = '#FFF';
-            
+
             setTimeout(() => {
                 saveDataBtn.textContent = originalText;
                 saveDataBtn.style.backgroundColor = '';
@@ -464,18 +534,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadSavedData = () => {
         const raw = localStorage.getItem('bannerMakerData');
         if (!raw) return;
-        
+
         try {
             const data = JSON.parse(raw);
-            
+
             // 2-1. 기본 설정 복구
-            inputs.title.value = data.settings.title || '';
+            inputs.titleLine1.value = data.settings.titleLine1 || data.settings.title || '';
+            inputs.titleLine2.value = data.settings.titleLine2 || '';
             themeColorInput.value = data.settings.themeColor || '#FC5B4F';
             inputs.notice.value = data.settings.notice || '';
-            
+
             const tplBtn = document.querySelector(`.tpl-btn[data-tpl="${data.settings.template}"]`);
             if (tplBtn) tplBtn.click();
-            
+
             dynamicIdCounter = data.settings.dynamicIdCounter || 0;
 
             // 2-2. 리스트 아이템 복구를 위한 DOM 추출
@@ -492,7 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data.items.forEach(itemData => {
                 const domEl = existingDomItems[itemData.id];
                 const prevEl = existingPreviewItems[itemData.id.replace('editor-', 'preview-dl-')];
-                
+
                 if (domEl) {
                     // Restore title dropdowns
                     const presetSelect = domEl.querySelector('.preset-title-select');
@@ -501,13 +572,26 @@ document.addEventListener('DOMContentLoaded', () => {
                         presetSelect.value = itemData.titlePreset;
                         if (itemData.titlePreset === '기타' && customInput) {
                             customInput.value = itemData.titleContent;
-                            customInput.style.display = 'block';
+                            customInput.classList.add('is-active');
                         }
                     } else if (presetSelect) {
                         // Fallback for old save structure
-                        presetSelect.value = '기타';
-                        customInput.value = itemData.title || itemData.titleContent;
-                        customInput.style.display = 'block';
+                        const oldTitle = itemData.title || itemData.titleContent || '';
+                        let matched = false;
+                        Array.from(presetSelect.options).forEach(opt => {
+                            if (opt.value === oldTitle) matched = true;
+                        });
+                        
+                        if (matched) {
+                            presetSelect.value = oldTitle;
+                            if (customInput) customInput.classList.remove('is-active');
+                        } else {
+                            presetSelect.value = '기타';
+                            if (customInput) {
+                                customInput.value = oldTitle;
+                                customInput.classList.add('is-active');
+                            }
+                        }
                     }
 
                     if (itemData.type === 'date') {
@@ -519,14 +603,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             const benCustom = document.getElementById('benefit-custom');
                             if (benSelect && itemData.benefitPreset !== undefined) {
                                 benSelect.value = itemData.benefitPreset;
-                                if(itemData.benefitPreset === '기타') {
+                                if (itemData.benefitPreset === '기타') {
                                     benCustom.value = itemData.content;
                                 }
                             }
                         } else {
                             setTimeout(() => {
                                 const el = document.getElementById(itemData.inputId);
-                                if(el) el.value = itemData.content;
+                                if (el) el.value = itemData.content;
                             }, 0);
                         }
                     } else if (itemData.type === 'dynamic') {
@@ -537,7 +621,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (prevEl) infoList.appendChild(prevEl);
                 }
             });
-            
+
             // Dispatch input/change events to refresh UI state immediately
             setTimeout(() => {
                 document.querySelectorAll('input, select').forEach(el => {
@@ -548,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             }, 10);
-            
+
         } catch (e) {
             console.error("Failed to parse local storage data", e);
         }
@@ -575,11 +659,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 3.0 NEW LOGIC ---
     // 1. 150-char MaxLength on all inputs
     document.querySelectorAll('.build-col-content input[type="text"], .build-col-content textarea').forEach(el => {
-        if(!el.classList.contains('theme-color')) {
+        if (!el.classList.contains('theme-color')) {
             el.maxLength = 150;
             // Prevent pasting large chunks
             el.addEventListener('input', (e) => {
-                if(e.target.value.length > 150) {
+                if (e.target.value.length > 150) {
                     alert('최대 150자까지만 입력 가능합니다.');
                     e.target.value = e.target.value.substring(0, 150);
                     // trigger further events
@@ -629,16 +713,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Observer to re-apply logic on any dom update in banner-content just in case
     const observer = new MutationObserver(() => {
-        document.querySelectorAll('.info-list dd, #preview-title').forEach(applyAdaptiveFont);
+        document.querySelectorAll('.info-list dd, .preview-title-line1, .preview-title-line2').forEach(applyAdaptiveFont);
     });
-    observer.observe(document.querySelector('.banner-content'), {childList: true, subtree: true, characterData: true});
+    observer.observe(document.querySelector('.banner-content'), { childList: true, subtree: true, characterData: true });
 
     // 3. Title Preset Dropdowns (Existing items)
+    // syncTitleDropdown: dt 텍스트만 현재 값으로 동기화 (이벤트 리스너 등록 없음 - 탭 전환 시 사용)
+    const syncTitleDropdown = (group) => {
+        const select = group.querySelector('.preset-title-select');
+        const customInput = group.querySelector('.custom-title-input');
+        if (!select || !customInput) return;
+
+        let previewDt;
+        const dataFor = select.getAttribute('data-for');
+        if (dataFor) {
+            previewDt = document.getElementById('preview-dt-' + dataFor);
+        } else {
+            const listItemId = group.closest('.list-item').id;
+            const dtId = listItemId.replace('editor-', 'preview-dl-');
+            const previewDl = document.getElementById(dtId);
+            if (previewDl) previewDt = previewDl.querySelector('dt');
+        }
+
+        if (!previewDt) return;
+        const val = select.value;
+        let currentTitle = val;
+        if (val === '기타') {
+            currentTitle = customInput.value.trim() || '입력 안됨';
+        }
+        if (previewDt) previewDt.textContent = currentTitle;
+        const displaySpan = group.querySelector('.display-title-text');
+        if (displaySpan) displaySpan.textContent = currentTitle;
+    };
+
+    // initTitleDropdown: 이벤트 리스너 등록 + 초기 동기화 (최초 1회만 호출)
     const initTitleDropdown = (group) => {
         const select = group.querySelector('.preset-title-select');
         const customInput = group.querySelector('.custom-title-input');
         if (!select || !customInput) return;
-        
+
+        // 이미 초기화된 그룹은 건너뜀 (중복 이벤트 방지)
+        if (group.dataset.initialized) return;
+        group.dataset.initialized = 'true';
+
         let previewDt;
         const dataFor = select.getAttribute('data-for');
         if (dataFor) {
@@ -648,19 +765,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const listItemId = group.closest('.list-item').id;
             const dtId = listItemId.replace('editor-', 'preview-dl-');
             const previewDl = document.getElementById(dtId);
-            if(previewDl) previewDt = previewDl.querySelector('dt');
+            if (previewDl) previewDt = previewDl.querySelector('dt');
         }
-        
+
         const updateTitle = () => {
             const val = select.value;
+            let currentTitle = val;
+
             if (val === '기타') {
-                customInput.style.display = 'block';
-                if(previewDt) previewDt.textContent = customInput.value.trim() || '입력 안됨';
+                customInput.classList.add('is-active');
+                currentTitle = customInput.value.trim() || '입력 안됨';
             } else {
-                customInput.style.display = 'none';
-                if(previewDt) previewDt.textContent = val;
+                customInput.classList.remove('is-active');
             }
-            if(previewDt) applyAdaptiveFont(previewDt);
+
+            if (previewDt) previewDt.textContent = currentTitle;
+            
+            const displaySpan = group.querySelector('.display-title-text');
+            if (displaySpan) displaySpan.textContent = currentTitle;
+
+            if (previewDt) applyAdaptiveFont(previewDt);
         };
 
         select.addEventListener('change', updateTitle);
@@ -681,7 +805,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewRewardImg = document.getElementById('preview-reward-img');
     const previewBenefitDd = document.getElementById('preview-benefit');
 
-    if(benefitSelect && benefitCustom) {
+    if (benefitSelect && benefitCustom) {
         const updateReward = () => {
             const val = benefitSelect.value;
             if (val === '기타') {
@@ -691,11 +815,11 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (val === '') {
                 benefitCustom.style.display = 'none';
                 previewRewardImg.style.display = 'none';
-                updateText(previewBenefitDd, '', ''); 
+                updateText(previewBenefitDd, '', '');
             } else {
                 benefitCustom.style.display = 'none';
                 updateText(previewBenefitDd, val, '혜택 미정');
-                if(rewardImages[val]) {
+                if (rewardImages[val]) {
                     previewRewardImg.src = rewardImages[val];
                     previewRewardImg.style.display = 'block';
                 } else {
@@ -715,7 +839,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const CANVAS_NATIVE_WIDTH = 1080;
     const VIEW_SPECS = {
-        feed:  { px: 1350, label: '1350px', ratio: '4 / 5' },
+        feed: { px: 1350, label: '1350px', ratio: '4 / 5' },
         story: { px: 1920, label: '1920px', ratio: '9 / 16' }
     };
 
@@ -746,15 +870,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* ----- UI 요소 참조 ----- */
     const canvasContainer = document.getElementById('canvas-container');
-    const capacityBar     = document.getElementById('capacity-bar');
-    const overflowAlert   = document.getElementById('overflow-alert');
-    const overflowMsg     = document.getElementById('overflow-alert-msg');
-    const previewTitle    = document.getElementById('preview-title');
-    const bannerContent   = document.querySelector('.banner-content');
-    const bannerFooter    = document.querySelector('.banner-footer');
-    const bannerHeader    = document.querySelector('.banner-header');
-    const infoListDls     = () => document.querySelectorAll('.info-list dl');
-    const infoListDds     = () => document.querySelectorAll('.info-list dd');
+    const capacityBar = document.getElementById('capacity-bar');
+    const overflowAlert = document.getElementById('overflow-alert');
+    const overflowMsg = document.getElementById('overflow-alert-msg');
+    const previewTitleLine1 = document.getElementById('preview-title-line1');
+    const previewTitleLine2 = document.getElementById('preview-title-line2');
+    const bannerContent = document.querySelector('.banner-content');
+    const bannerFooter = document.querySelector('.banner-footer');
+    const bannerHeader = document.querySelector('.banner-header');
+    const infoListDls = () => document.querySelectorAll('.info-list dl');
+    const infoListDds = () => document.querySelectorAll('.info-list dd');
 
     /* ------------------------------------------------
        메인 최적화 루프 (단계별)
@@ -763,45 +888,49 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!bannerCanvas || !bannerContent) return;
 
         // ── 모든 값을 최초값으로 리셋 ──
-        previewTitle.style.fontSize = ORIGINAL.titleFontSize + 'px';
+        if (previewTitleLine1) previewTitleLine1.style.fontSize = ORIGINAL.titleFontSize + 'px';
+        if (previewTitleLine2) previewTitleLine2.style.fontSize = ORIGINAL.titleFontSize + 'px';
+
+        // 인라인으로 오버라이드된 flex 및 정렬 속성 리셋 (CSS로 완벽히 위임)
+        bannerContent.style.flex = '';
+        const innerWrap = bannerCanvas.querySelector('.banner-inner-wrap');
+        if (innerWrap) innerWrap.style.justifyContent = '';
+
         bannerContent.style.padding = `${ORIGINAL.bannerPadding}px`;
-        bannerFooter.style.padding  = `${ORIGINAL.footerPadding}px ${ORIGINAL.bannerPadding}px`;
+        bannerFooter.style.padding = `${ORIGINAL.footerPadding}px ${ORIGINAL.bannerPadding}px`;
         bannerHeader.style.marginBottom = ORIGINAL.bannerHeaderMargin + 'px';
         infoListDls().forEach(dl => {
-            dl.style.paddingTop    = ORIGINAL.dlPadding + 'px';
+            dl.style.paddingTop = ORIGINAL.dlPadding + 'px';
             dl.style.paddingBottom = ORIGINAL.dlPadding + 'px';
         });
         infoListDds().forEach(dd => dd.style.fontSize = '');
 
-        // 현재 실제 콘텐츠 높이 (scroll height = overflow 포함 전체 높이)
+        // 현재 실제 콘텐츠 높이
+        // story 모드: banner-content가 flex:none이라 bannerCanvas.scrollHeight가
+        // 콘텐츠 크기만큼만 나옴. overflow 판정은 "콘텐츠가 컨테이너 안에 들어오는가"이므로
+        // story에서는 bannerCanvas.scrollHeight(=콘텐츠 실제 높이)와 containerH를 비교
         const getCurrentH = () => bannerCanvas.scrollHeight;
+        const containerH = canvasContainer.getBoundingClientRect().height;
+        const targetRendered = containerH;
 
-        // 화면에 보이는 영역 높이 (canvas-container의 aspect-ratio에 의해 결정)
-        const targetRendered = canvasContainer ? canvasContainer.getBoundingClientRect().height : canvas.getBoundingClientRect().height;
-
-        // ── 1단계: 제목 폰트 축소 (36px → 28px, 1px씩) ──
-        let titlePx = ORIGINAL.titleFontSize;
-        while (getCurrentH() > targetRendered && titlePx > ORIGINAL.titleFontSizeMin) {
-            titlePx -= 1;
-            previewTitle.style.fontSize = titlePx + 'px';
-        }
+        // ── 1단계: 제목 폰트 축소 로직 비활성화 (크기 고정 요구사항) ──
 
         // ── 2단계: 간격/패딩 축소 ──
         if (getCurrentH() > targetRendered) {
-            let dlPad       = ORIGINAL.dlPadding;
-            let contentPad  = ORIGINAL.bannerPadding;
-            let footerPad   = ORIGINAL.footerPadding;
-            let headerMb    = ORIGINAL.bannerHeaderMargin;
+            let dlPad = ORIGINAL.dlPadding;
+            let contentPad = ORIGINAL.bannerPadding;
+            let footerPad = ORIGINAL.footerPadding;
+            let headerMb = ORIGINAL.bannerHeaderMargin;
 
             while (getCurrentH() > targetRendered &&
-                   (dlPad > ORIGINAL.dlPaddingMin ||
+                (dlPad > ORIGINAL.dlPaddingMin ||
                     contentPad > ORIGINAL.bannerPaddingMin ||
                     headerMb > ORIGINAL.bannerHeaderMarginMin)) {
 
                 if (dlPad > ORIGINAL.dlPaddingMin) {
                     dlPad = Math.max(ORIGINAL.dlPaddingMin, dlPad - 1);
                     infoListDls().forEach(dl => {
-                        dl.style.paddingTop    = dlPad + 'px';
+                        dl.style.paddingTop = dlPad + 'px';
                         dl.style.paddingBottom = dlPad + 'px';
                     });
                 }
@@ -820,19 +949,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // ── 3단계: 본문 폰트 축소 ──
-        if (getCurrentH() > targetRendered) {
-            let ddPx = ORIGINAL.ddFontSize;
-            while (getCurrentH() > targetRendered && ddPx > ORIGINAL.ddFontSizeMin) {
-                ddPx -= 1;
-                infoListDds().forEach(dd => dd.style.fontSize = ddPx + 'px');
-            }
-        }
+        // ── 3단계: 본문 폰트 축소 로직 비활성화 (결과물 일관성) ──
 
         // ── 용량 게이지 & 경고 업데이트 ──
-        const finalH   = getCurrentH();
-        const ratio    = Math.min((finalH / targetRendered) * 100, 120);
-        const isOver   = finalH > targetRendered + 1;
+        const finalH = getCurrentH();
+        let ratio = Math.min((finalH / targetRendered) * 100, 120);
+        let isOver = finalH > targetRendered + 1;
+
+        // Locofy 구동 등 특정 디자인 모드에서는 absolute scale이 스크롤 높이를 비틀어버리므로 오버플로우 검사를 건너뜀
+        const capacityBarWrapper = document.querySelector('.capacity-bar-wrapper');
+        if (bannerCanvas.classList.contains('template-a')) {
+             isOver = false;
+             if (capacityBarWrapper) capacityBarWrapper.style.display = 'none';
+        } else {
+             if (capacityBarWrapper) capacityBarWrapper.style.display = 'block';
+        }
 
         if (capacityBar) {
             capacityBar.style.width = Math.min(ratio, 100) + '%';
@@ -854,6 +985,144 @@ document.addEventListener('DOMContentLoaded', () => {
                     .forEach(el => el.classList.remove('input-overflow-warning'));
             }
         }
+        
+        // ==========================================
+        // 🚀 [추가] Locofy 템플릿 A 통합 및 데이터 바인딩
+        // ==========================================
+        const syncLocofyTemplate = () => {
+            const locofyDynamicWrapper = document.getElementById('locofy-dynamic-wrapper');
+            const standardWrapper = document.getElementById('banner-content-wrapper');
+            if (!locofyDynamicWrapper || !standardWrapper) return;
+
+            const isTemplateA = bannerCanvas.classList.contains('template-a');
+            const isFeedMode = currentMode === 'feed';
+            const isStoryMode = currentMode === 'story';
+
+            if (isTemplateA && (isFeedMode || isStoryMode)) {
+                // 1) 동적 파일 로드 구현체 (개발망 접근 제한 우회용 네이티브 템플릿 로드 적용 완료✨)
+                if (locofyDynamicWrapper.dataset.activeMode !== currentMode) {
+                    const templateId = isFeedMode ? 'tpl-locofy-a-feed' : 'tpl-locofy-a-story';
+                    const TPL = document.getElementById(templateId);
+                    if (TPL) {
+                         locofyDynamicWrapper.innerHTML = TPL.innerHTML;
+                    }
+                    locofyDynamicWrapper.className = isFeedMode ? 'template-a-feed-container' : 'template-a-story-container';
+                    locofyDynamicWrapper.dataset.activeMode = currentMode;
+                }
+
+                // 2) 래퍼 전환
+                standardWrapper.style.display = 'none';
+                locofyDynamicWrapper.style.display = 'block';
+
+                const targetWrapper = locofyDynamicWrapper.querySelector('.template-a-feed');
+                if (!targetWrapper) return;
+
+                const containerClass = isFeedMode ? 'template-a-feed-container' : 'template-a-story-container';
+                const nativeWidth = 1080;
+                const nativeHeight = isFeedMode ? 1350 : 1920;
+
+                // 2) CSS 스케일링
+                const currentWidth = bannerCanvas.clientWidth || 480;
+                const scaleVal = currentWidth / nativeWidth;
+                targetWrapper.style.position = 'absolute';
+                targetWrapper.style.top = '0';
+                targetWrapper.style.left = '0';
+                targetWrapper.style.transformOrigin = 'top left';
+                targetWrapper.style.transform = `scale(${scaleVal})`;
+                targetWrapper.style.width = `${nativeWidth}px`;
+                targetWrapper.style.height = `${nativeHeight}px`;
+                
+                bannerCanvas.style.position = 'relative';
+                bannerCanvas.style.height = `${nativeHeight * scaleVal}px`;
+
+                // 3) 데이터 바인딩 로직
+                // (a) 제목
+                const title1Selector = isFeedMode ? '.line-1' : '.line-12';
+                const title2Selector = isFeedMode ? '.line-2' : '.line-22';
+                const locofyTitle1 = targetWrapper.querySelector(title1Selector);
+                const locofyTitle2 = targetWrapper.querySelector(title2Selector);
+                if (locofyTitle1 && previewTitleLine1) locofyTitle1.textContent = previewTitleLine1.textContent;
+                if (locofyTitle2 && previewTitleLine2) locofyTitle2.textContent = previewTitleLine2.textContent;
+
+                // (b) 동적 리스트 렌더링
+                const frameContents = targetWrapper.querySelector('.frame-contents');
+                if (frameContents) {
+                    frameContents.innerHTML = '';
+                    infoListDls().forEach(dl => {
+                        const dtText = dl.querySelector('dt').textContent;
+                        const bodyDiv = document.createElement('div');
+                        
+                        if (dl.id === 'preview-dl-date') {
+                            bodyDiv.className = `contents-11 ${containerClass}`;
+                            const listCls = isFeedMode ? 'list-2' : 'list-22';
+                            const titleCls = isFeedMode ? 'list-12' : 'list-14';
+                            const contentWrapCls = isFeedMode ? 'list-2-contents' : 'list-2-contents2';
+                            const dateCls = isFeedMode ? 'date' : 'date2';
+                            const timeCls = isFeedMode ? 'time' : 'time2';
+                            bodyDiv.innerHTML = `
+                              <div class="${listCls}">
+                                <h2 class="${titleCls}">${dtText}</h2>
+                              </div>
+                              <div class="${contentWrapCls}">
+                                <h2 class="${dateCls}">${document.getElementById('preview-date-date').textContent}</h2>
+                                <h2 class="${timeCls}">${document.getElementById('preview-date-time').textContent}</h2>
+                              </div>
+                            `;
+                        } else {
+                            bodyDiv.className = `contents-12 ${containerClass}`;
+                            const ddText = dl.querySelector('dd').textContent;
+                            const listCls = isFeedMode ? 'list-1' : 'list-13';
+                            const titleCls = isFeedMode ? 'list-12' : 'list-14';
+                            // In Locofy some are list-1-contents, some list-5-contents, let's use list-1-contents everywhere for simplicity
+                            const contentWrapCls = isFeedMode ? 'list-1-contents' : 'list-1-contents3';
+                            const textCls = isFeedMode ? 'list-1-contents2' : 'list-1-contents4';
+                            bodyDiv.innerHTML = `
+                              <div class="${listCls}">
+                                <h2 class="${titleCls}">${dtText}</h2>
+                              </div>
+                              <div class="${contentWrapCls}">
+                                <h2 class="${textCls}">${ddText}</h2>
+                              </div>
+                            `;
+                        }
+                        
+                        // 하이라이트(강조) 적용 연동
+                        if (dl.classList.contains('highlight-row')) {
+                             bodyDiv.style.backgroundColor = 'rgba(252, 91, 79, 0.04)';
+                             const titles = bodyDiv.querySelectorAll('h2');
+                             titles.forEach(t => {
+                                t.style.color = 'var(--Primary-Red)';
+                                t.style.fontWeight = '800';
+                             });
+                        }
+
+                        frameContents.appendChild(bodyDiv);
+                    });
+                }
+
+                // (c) 유의사항
+                const noticeHTML = document.getElementById('preview-notice').innerHTML;
+                const locofyNotice = targetWrapper.querySelector('.locofy-notice');
+                if (locofyNotice) {
+                    locofyNotice.innerHTML = noticeHTML;
+                }
+
+            } else {
+                // 원상 복구
+                standardWrapper.style.display = ''; 
+                locofyDynamicWrapper.style.display = 'none';
+                locofyDynamicWrapper.innerHTML = '';
+                locofyDynamicWrapper.dataset.activeMode = '';
+                locofyDynamicWrapper.className = '';
+                
+                bannerCanvas.style.height = ''; 
+                bannerCanvas.style.position = '';
+            }
+        };
+
+        // 수행!
+        syncLocofyTemplate();
+
     };
 
     /* ----- 뷰탭 전환 로직 (기존 탭과 통합) ----- */
@@ -864,7 +1133,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tab.classList.add('active');
 
             currentMode = tab.dataset.mode || 'feed';
-            targetPx    = VIEW_SPECS[currentMode].px;
+            targetPx = VIEW_SPECS[currentMode].px;
 
             // canvas-container 비율 전환
             if (canvasContainer) {
@@ -875,8 +1144,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 bannerCanvas.classList.toggle('story-centered', currentMode === 'story');
             }
 
+            // 인라인 정렬 스타일 초기화 (전환 시 CSS의 story-centered 규칙을 통해 자동 적용됨)
+            const innerWrap = bannerCanvas.querySelector('.banner-inner-wrap');
+            if (innerWrap) {
+                innerWrap.style.justifyContent = '';
+            }
             // 레이아웃 엔진 재실행 (비율 변경 후 repaint 대기)
-            requestAnimationFrame(() => setTimeout(runLayoutEngine, 50));
+            // 탭 전환 후 dt 텍스트 동기화 (이벤트 재등록 없이 값만 갱신)
+            requestAnimationFrame(() => {
+                document.querySelectorAll('.item-label-group').forEach(syncTitleDropdown);
+                setTimeout(runLayoutEngine, 50);
+            });
         });
     });
 
