@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>리서치 다이내믹 배너 메이커 편집기</title>
+    <title>공고뚝딱 : Research Banner Builder</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="templates/template_a/feed/locofy_global.css">
     <link rel="stylesheet" href="templates/template_a/feed/locofy_template_a_scoped.css">
@@ -48,237 +48,327 @@
             <!-- Col 2: 콘텐츠 편집 -->
             <div class="build-col build-col-content">
                 <div id="build-panel-scroller" class="build-panel-scroller">
-                <header class="content-header">
-                    <h2>배너 콘텐츠 편집</h2>
-                    <p>정보를 입력하면 우측 패널에 실시간으로 반영됩니다.</p>
-                </header>
+                    <header class="content-header">
+                        <h2>배너 콘텐츠 편집</h2>
+                        <p>정보를 입력하면 우측 패널에 실시간으로 반영됩니다.</p>
+                    </header>
 
-                <form id="banner-form">
-                    <div class="form-group">
-                        <label for="title-line1">리서치 제목 (첫번째 줄)</label>
-                        <input type="text" id="title-line1" placeholder="예: 20대가 선호하는 브랜드"
-                            value="20대가 선호하는 브랜드">
-                    </div>
-                    <div class="form-group">
-                        <label for="title-line2">리서치 제목 (두번째 줄)</label>
-                        <input type="text" id="title-line2" placeholder="예: 좌담회 참여자 모집"
-                            value="좌담회 참여자 모집">
-                    </div>
+                    <form id="banner-form">
+                        <div class="form-group">
+                            <label for="title-line1">리서치 제목 (첫번째 줄)</label>
+                            <input type="text" id="title-line1" placeholder="예: 20대가 선호하는 브랜드" value="20대가 선호하는 브랜드">
+                        </div>
+                        <div class="form-group">
+                            <label for="title-line2">리서치 제목 (두번째 줄)</label>
+                            <input type="text" id="title-line2" placeholder="예: 좌담회 참여자 모집" value="좌담회 참여자 모집">
+                        </div>
 
-                    <!-- 동적 리스트 공간 (현재는 정적 입력 필드들을 유지하되, 구조상 분리) -->
-                    <div class="dynamic-list-wrapper">
-                        <div class="list-header">
-                            <h3>공고 항목</h3>
-                            <!-- 동적 관리를 위한 버튼 -->
-                            <div class="list-action-btns">
-                                <button type="button" class="add-item-btn" style="display: none;">+ 항목 추가</button>
-                                <button type="button" class="edit-mode-btn">항목 편집</button>
+                        <!-- 동적 리스트 공간 (현재는 정적 입력 필드들을 유지하되, 구조상 분리) -->
+                        <div class="dynamic-list-wrapper">
+                            <div class="list-header">
+                                <h3>공고 항목</h3>
+                                <!-- 동적 관리를 위한 버튼 -->
+                                <div class="list-action-btns">
+                                    <button type="button" class="add-item-btn" style="display: none;">+ 항목 추가</button>
+                                    <button type="button" class="edit-mode-btn">항목 편집</button>
+                                </div>
+                            </div>
+                            <div class="dynamic-list">
+                                <div class="list-item" id="editor-target">
+                                    <div class="item-header-row">
+                                        <div class="item-label-group">
+                                            <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24"
+                                                    width="16" height="16" stroke="currentColor" stroke-width="2"
+                                                    fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <line x1="4" y1="8" x2="20" y2="8"></line>
+                                                    <line x1="4" y1="16" x2="20" y2="16"></line>
+                                                </svg></span>
+
+                                            <span class="display-title-text"></span>
+                                            <select class="preset-title-select dynamic-title-input" data-for="target">
+                                                <option value="참여 대상" selected>참여 대상</option>
+                                                <option value="진행 일시">진행 일시</option>
+                                                <option value="진행 장소">진행 장소</option>
+                                                <option value="참여 혜택">참여 혜택</option>
+                                                <option value="신청 마감">신청 마감</option>
+                                                <option value="참가자 확정">참가자 확정</option>
+                                                <option value="기타">기타(직접 입력)</option>
+                                            </select>
+                                            <input type="text" class="custom-title-input dynamic-title-input"
+                                                style="display:none;" placeholder="항목명 입력">
+
+                                        </div>
+                                        <label class="highlight-toggle" title="강조 항목 지정">
+                                            <input type="checkbox" class="highlight-checkbox"
+                                                data-preview-id="preview-dl-target">
+                                            <span class="highlight-toggle-icon">★</span>
+                                        </label>
+                                        <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24"
+                                                width="16" height="16" stroke="currentColor" stroke-width="2"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                <path
+                                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                                </path>
+                                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                                            </svg></button>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" id="target" placeholder="예: 전국 4년제 대학 재학생 및 휴학생"
+                                            value="전국 4년제 대학 재학생 및 휴학생">
+                                    </div>
+                                </div>
+
+                                <div class="list-item" id="editor-date" style="position: relative; z-index: 2;">
+                                    <div class="item-header-row">
+                                        <div class="item-label-group">
+                                            <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24"
+                                                    width="16" height="16" stroke="currentColor" stroke-width="2"
+                                                    fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <line x1="4" y1="8" x2="20" y2="8"></line>
+                                                    <line x1="4" y1="16" x2="20" y2="16"></line>
+                                                </svg></span>
+
+                                            <span class="display-title-text"></span>
+                                            <select class="preset-title-select dynamic-title-input" data-for="date">
+                                                <option value="참여 대상">참여 대상</option>
+                                                <option value="진행 일시" selected>진행 일시</option>
+                                                <option value="진행 장소">진행 장소</option>
+                                                <option value="참여 혜택">참여 혜택</option>
+                                                <option value="신청 마감">신청 마감</option>
+                                                <option value="참가자 확정">참가자 확정</option>
+                                                <option value="기타">기타(직접 입력)</option>
+                                            </select>
+                                            <input type="text" class="custom-title-input dynamic-title-input"
+                                                style="display:none;" placeholder="항목명 입력">
+                                            <span class="fixed-item-label">(고정 항목)</span>
+                                        </div>
+                                        <label class="highlight-toggle" title="강조 항목 지정">
+                                            <input type="checkbox" class="highlight-checkbox"
+                                                data-preview-id="preview-dl-date">
+                                            <span class="highlight-toggle-icon">★</span>
+                                        </label>
+                                        <!-- 진행 일시는 필수 항목이므로 삭제 버튼 제공 안됨 (드래그만 가능) -->
+                                    </div>
+                                    <div class="form-group form-group--grouped">
+                                        <div class="sub-group">
+                                            <label for="date-date">날짜</label>
+                                            <input type="text" id="date-date" value="2026. 03. 25.(수) / 1일 참여">
+                                        </div>
+                                        <div class="sub-group">
+                                            <label for="date-time">시간</label>
+                                            <input type="text" id="date-time" value="14:00 ~ 16:00 (약 2시간)">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="list-item" id="editor-location">
+                                    <div class="item-header-row">
+                                        <div class="item-label-group">
+                                            <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24"
+                                                    width="16" height="16" stroke="currentColor" stroke-width="2"
+                                                    fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <line x1="4" y1="8" x2="20" y2="8"></line>
+                                                    <line x1="4" y1="16" x2="20" y2="16"></line>
+                                                </svg></span>
+
+                                            <span class="display-title-text"></span>
+                                            <select class="preset-title-select dynamic-title-input" data-for="location">
+                                                <option value="참여 대상">참여 대상</option>
+                                                <option value="진행 일시">진행 일시</option>
+                                                <option value="진행 장소" selected>진행 장소</option>
+                                                <option value="참여 혜택">참여 혜택</option>
+                                                <option value="신청 마감">신청 마감</option>
+                                                <option value="참가자 확정">참가자 확정</option>
+                                                <option value="기타">기타(직접 입력)</option>
+                                            </select>
+                                            <input type="text" class="custom-title-input dynamic-title-input"
+                                                style="display:none;" placeholder="항목명 입력">
+
+                                        </div>
+                                        <label class="highlight-toggle" title="강조 항목 지정">
+                                            <input type="checkbox" class="highlight-checkbox"
+                                                data-preview-id="preview-dl-location">
+                                            <span class="highlight-toggle-icon">★</span>
+                                        </label>
+                                        <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24"
+                                                width="16" height="16" stroke="currentColor" stroke-width="2"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                <path
+                                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                                </path>
+                                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                                            </svg></button>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" id="location" value="강남역 인근 오프라인 리서치 룸 (개별 안내)">
+                                    </div>
+                                </div>
+
+                                <div class="list-item" id="editor-benefit">
+                                    <div class="item-header-row">
+                                        <div class="item-label-group">
+                                            <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24"
+                                                    width="16" height="16" stroke="currentColor" stroke-width="2"
+                                                    fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <line x1="4" y1="8" x2="20" y2="8"></line>
+                                                    <line x1="4" y1="16" x2="20" y2="16"></line>
+                                                </svg></span>
+
+                                            <span class="display-title-text"></span>
+                                            <select class="preset-title-select dynamic-title-input" data-for="benefit">
+                                                <option value="참여 대상">참여 대상</option>
+                                                <option value="진행 일시">진행 일시</option>
+                                                <option value="진행 장소">진행 장소</option>
+                                                <option value="참여 혜택" selected>참여 혜택</option>
+                                                <option value="신청 마감">신청 마감</option>
+                                                <option value="참가자 확정">참가자 확정</option>
+                                                <option value="기타">기타(직접 입력)</option>
+                                            </select>
+                                            <input type="text" class="custom-title-input dynamic-title-input"
+                                                style="display:none;" placeholder="항목명 입력">
+
+                                        </div>
+                                        <label class="highlight-toggle" title="강조 항목 지정">
+                                            <input type="checkbox" class="highlight-checkbox"
+                                                data-preview-id="preview-dl-benefit">
+                                            <span class="highlight-toggle-icon">★</span>
+                                        </label>
+                                        <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24"
+                                                width="16" height="16" stroke="currentColor" stroke-width="2"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                <path
+                                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                                </path>
+                                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                                            </svg></button>
+                                    </div>
+                                    <div class="form-group">
+
+                                        <select id="benefit" class="reward-select dynamic-content-input">
+                                            <option value="">리워드 선택 안함</option>
+                                            <option value="네이버페이 3천원(전원)">네이버페이 3천원(전원)</option>
+                                            <option value="네이버페이 5천원(전원)">네이버페이 5천원(전원)</option>
+                                            <option value="커리어톡 3천원(전원)">커리어톡 3천원(전원)</option>
+                                            <option value="커리어톡 5천원(전원)">커리어톡 5천원(전원)</option>
+                                            <option value="기타" selected>기타(직접 입력)</option>
+                                        </select>
+                                        <input type="text" id="benefit-custom" placeholder="기타 혜택 입력"
+                                            value="참가비 5만원 + 다과 제공" style="margin-top: 0.5rem; width: 100%;">
+
+                                    </div>
+                                </div>
+
+                                <div class="list-item" id="editor-deadline">
+                                    <div class="item-header-row">
+                                        <div class="item-label-group">
+                                            <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24"
+                                                    width="16" height="16" stroke="currentColor" stroke-width="2"
+                                                    fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <line x1="4" y1="8" x2="20" y2="8"></line>
+                                                    <line x1="4" y1="16" x2="20" y2="16"></line>
+                                                </svg></span>
+
+                                            <span class="display-title-text"></span>
+                                            <select class="preset-title-select dynamic-title-input" data-for="deadline">
+                                                <option value="참여 대상">참여 대상</option>
+                                                <option value="진행 일시">진행 일시</option>
+                                                <option value="진행 장소">진행 장소</option>
+                                                <option value="참여 혜택">참여 혜택</option>
+                                                <option value="신청 마감" selected>신청 마감</option>
+                                                <option value="참가자 확정">참가자 확정</option>
+                                                <option value="기타">기타(직접 입력)</option>
+                                            </select>
+                                            <input type="text" class="custom-title-input dynamic-title-input"
+                                                style="display:none;" placeholder="항목명 입력">
+
+                                        </div>
+                                        <label class="highlight-toggle" title="강조 항목 지정">
+                                            <input type="checkbox" class="highlight-checkbox"
+                                                data-preview-id="preview-dl-deadline">
+                                            <span class="highlight-toggle-icon">★</span>
+                                        </label>
+                                        <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24"
+                                                width="16" height="16" stroke="currentColor" stroke-width="2"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                <path
+                                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                                </path>
+                                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                                            </svg></button>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" id="deadline" value="2026. 03. 20.(금) 23:59까지">
+                                    </div>
+                                </div>
+
+                                <div class="list-item" id="editor-announcement">
+                                    <div class="item-header-row">
+                                        <div class="item-label-group">
+                                            <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24"
+                                                    width="16" height="16" stroke="currentColor" stroke-width="2"
+                                                    fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                    <line x1="4" y1="8" x2="20" y2="8"></line>
+                                                    <line x1="4" y1="16" x2="20" y2="16"></line>
+                                                </svg></span>
+
+                                            <span class="display-title-text"></span>
+                                            <select class="preset-title-select dynamic-title-input"
+                                                data-for="announcement">
+                                                <option value="참여 대상">참여 대상</option>
+                                                <option value="진행 일시">진행 일시</option>
+                                                <option value="진행 장소">진행 장소</option>
+                                                <option value="참여 혜택">참여 혜택</option>
+                                                <option value="신청 마감">신청 마감</option>
+                                                <option value="참가자 확정" selected>참가자 확정</option>
+                                                <option value="기타">기타(직접 입력)</option>
+                                            </select>
+                                            <input type="text" class="custom-title-input dynamic-title-input"
+                                                style="display:none;" placeholder="항목명 입력">
+
+                                        </div>
+                                        <label class="highlight-toggle" title="강조 항목 지정">
+                                            <input type="checkbox" class="highlight-checkbox"
+                                                data-preview-id="preview-dl-announcement">
+                                            <span class="highlight-toggle-icon">★</span>
+                                        </label>
+                                        <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24"
+                                                width="16" height="16" stroke="currentColor" stroke-width="2"
+                                                fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                <path
+                                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                                </path>
+                                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                                            </svg></button>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" id="announcement" value="2026. 03. 23.(월) 개별 문자 안내">
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="dynamic-list">
-                            <div class="list-item" id="editor-target">
-                                <div class="item-header-row">
-                                    <div class="item-label-group">
-                                        <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
-                                        
-                                        <span class="display-title-text"></span>
-                                        <select class="preset-title-select dynamic-title-input" data-for="target">
-                                            <option value="참여 대상" selected>참여 대상</option>
-                                            <option value="진행 일시">진행 일시</option>
-                                            <option value="진행 장소">진행 장소</option>
-                                            <option value="참여 혜택">참여 혜택</option>
-                                            <option value="신청 마감">신청 마감</option>
-                                            <option value="참가자 확정">참가자 확정</option>
-                                            <option value="기타">기타(직접 입력)</option>
-                                        </select>
-                                        <input type="text" class="custom-title-input dynamic-title-input" style="display:none;" placeholder="항목명 입력">
 
-                                    </div>
-                                    <label class="highlight-toggle" title="강조 항목 지정">
-                                        <input type="checkbox" class="highlight-checkbox" data-preview-id="preview-dl-target">
-                                        <span class="highlight-toggle-icon">★</span>
-                                    </label>
-                                    <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
-                                </div>
-                                <div class="form-group">
-                                    <input type="text" id="target" placeholder="예: 전국 4년제 대학 재학생 및 휴학생" value="전국 4년제 대학 재학생 및 휴학생">
-                                </div>
-                            </div>
-
-                            <div class="list-item" id="editor-date" style="position: relative; z-index: 2;">
-                                <div class="item-header-row">
-                                    <div class="item-label-group">
-                                        <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
-                                        
-                                        <span class="display-title-text"></span>
-                                        <select class="preset-title-select dynamic-title-input" data-for="date">
-                                            <option value="참여 대상">참여 대상</option>
-                                            <option value="진행 일시" selected>진행 일시</option>
-                                            <option value="진행 장소">진행 장소</option>
-                                            <option value="참여 혜택">참여 혜택</option>
-                                            <option value="신청 마감">신청 마감</option>
-                                            <option value="참가자 확정">참가자 확정</option>
-                                            <option value="기타">기타(직접 입력)</option>
-                                        </select>
-                                        <input type="text" class="custom-title-input dynamic-title-input" style="display:none;" placeholder="항목명 입력">
-                                        <span class="fixed-item-label">(고정 항목)</span>
-                                    </div>
-                                    <label class="highlight-toggle" title="강조 항목 지정">
-                                        <input type="checkbox" class="highlight-checkbox" data-preview-id="preview-dl-date">
-                                        <span class="highlight-toggle-icon">★</span>
-                                    </label>
-                                    <!-- 진행 일시는 필수 항목이므로 삭제 버튼 제공 안됨 (드래그만 가능) -->
-                                </div>
-                                <div class="form-group form-group--grouped">
-                                    <div class="sub-group">
-                                        <label for="date-date">날짜</label>
-                                        <input type="text" id="date-date" value="2026. 03. 25.(수) / 1일 참여">
-                                    </div>
-                                    <div class="sub-group">
-                                        <label for="date-time">시간</label>
-                                        <input type="text" id="date-time" value="14:00 ~ 16:00 (약 2시간)">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="list-item" id="editor-location">
-                                <div class="item-header-row">
-                                    <div class="item-label-group">
-                                        <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
-                                        
-                                        <span class="display-title-text"></span>
-                                        <select class="preset-title-select dynamic-title-input" data-for="location">
-                                            <option value="참여 대상">참여 대상</option>
-                                            <option value="진행 일시">진행 일시</option>
-                                            <option value="진행 장소" selected>진행 장소</option>
-                                            <option value="참여 혜택">참여 혜택</option>
-                                            <option value="신청 마감">신청 마감</option>
-                                            <option value="참가자 확정">참가자 확정</option>
-                                            <option value="기타">기타(직접 입력)</option>
-                                        </select>
-                                        <input type="text" class="custom-title-input dynamic-title-input" style="display:none;" placeholder="항목명 입력">
-
-                                    </div>
-                                    <label class="highlight-toggle" title="강조 항목 지정">
-                                        <input type="checkbox" class="highlight-checkbox" data-preview-id="preview-dl-location">
-                                        <span class="highlight-toggle-icon">★</span>
-                                    </label>
-                                    <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
-                                </div>
-                                <div class="form-group">
-                                    <input type="text" id="location" value="강남역 인근 오프라인 리서치 룸 (개별 안내)">
-                                </div>
-                            </div>
-
-                            <div class="list-item" id="editor-benefit">
-                                <div class="item-header-row">
-                                    <div class="item-label-group">
-                                        <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
-                                        
-                                        <span class="display-title-text"></span>
-                                        <select class="preset-title-select dynamic-title-input" data-for="benefit">
-                                            <option value="참여 대상">참여 대상</option>
-                                            <option value="진행 일시">진행 일시</option>
-                                            <option value="진행 장소">진행 장소</option>
-                                            <option value="참여 혜택" selected>참여 혜택</option>
-                                            <option value="신청 마감">신청 마감</option>
-                                            <option value="참가자 확정">참가자 확정</option>
-                                            <option value="기타">기타(직접 입력)</option>
-                                        </select>
-                                        <input type="text" class="custom-title-input dynamic-title-input" style="display:none;" placeholder="항목명 입력">
-
-                                    </div>
-                                    <label class="highlight-toggle" title="강조 항목 지정">
-                                        <input type="checkbox" class="highlight-checkbox" data-preview-id="preview-dl-benefit">
-                                        <span class="highlight-toggle-icon">★</span>
-                                    </label>
-                                    <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
-                                </div>
-                                <div class="form-group">
-                                    
-<select id="benefit" class="reward-select dynamic-content-input">
-    <option value="">리워드 선택 안함</option>
-    <option value="네이버페이 3천원(전원)">네이버페이 3천원(전원)</option>
-    <option value="네이버페이 5천원(전원)">네이버페이 5천원(전원)</option>
-    <option value="커리어톡 3천원(전원)">커리어톡 3천원(전원)</option>
-    <option value="커리어톡 5천원(전원)">커리어톡 5천원(전원)</option>
-    <option value="기타" selected>기타(직접 입력)</option>
-</select>
-<input type="text" id="benefit-custom" placeholder="기타 혜택 입력" value="참가비 5만원 + 다과 제공" style="margin-top: 0.5rem; width: 100%;">
-
-                                </div>
-                            </div>
-
-                            <div class="list-item" id="editor-deadline">
-                                <div class="item-header-row">
-                                    <div class="item-label-group">
-                                        <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
-                                        
-                                        <span class="display-title-text"></span>
-                                        <select class="preset-title-select dynamic-title-input" data-for="deadline">
-                                            <option value="참여 대상">참여 대상</option>
-                                            <option value="진행 일시">진행 일시</option>
-                                            <option value="진행 장소">진행 장소</option>
-                                            <option value="참여 혜택">참여 혜택</option>
-                                            <option value="신청 마감" selected>신청 마감</option>
-                                            <option value="참가자 확정">참가자 확정</option>
-                                            <option value="기타">기타(직접 입력)</option>
-                                        </select>
-                                        <input type="text" class="custom-title-input dynamic-title-input" style="display:none;" placeholder="항목명 입력">
-
-                                    </div>
-                                    <label class="highlight-toggle" title="강조 항목 지정">
-                                        <input type="checkbox" class="highlight-checkbox" data-preview-id="preview-dl-deadline">
-                                        <span class="highlight-toggle-icon">★</span>
-                                    </label>
-                                    <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
-                                </div>
-                                <div class="form-group">
-                                    <input type="text" id="deadline" value="2026. 03. 20.(금) 23:59까지">
-                                </div>
-                            </div>
-
-                            <div class="list-item" id="editor-announcement">
-                                <div class="item-header-row">
-                                    <div class="item-label-group">
-                                        <span class="drag-handle" title="드래그하여 이동"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"></line><line x1="4" y1="16" x2="20" y2="16"></line></svg></span>
-                                        
-                                        <span class="display-title-text"></span>
-                                        <select class="preset-title-select dynamic-title-input" data-for="announcement">
-                                            <option value="참여 대상">참여 대상</option>
-                                            <option value="진행 일시">진행 일시</option>
-                                            <option value="진행 장소">진행 장소</option>
-                                            <option value="참여 혜택">참여 혜택</option>
-                                            <option value="신청 마감">신청 마감</option>
-                                            <option value="참가자 확정" selected>참가자 확정</option>
-                                            <option value="기타">기타(직접 입력)</option>
-                                        </select>
-                                        <input type="text" class="custom-title-input dynamic-title-input" style="display:none;" placeholder="항목명 입력">
-
-                                    </div>
-                                    <label class="highlight-toggle" title="강조 항목 지정">
-                                        <input type="checkbox" class="highlight-checkbox" data-preview-id="preview-dl-announcement">
-                                        <span class="highlight-toggle-icon">★</span>
-                                    </label>
-                                    <button type="button" class="del-btn" title="항목 삭제"><svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
-                                </div>
-                                <div class="form-group">
-                                    <input type="text" id="announcement" value="2026. 03. 23.(월) 개별 문자 안내">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group notice-group">
-                        <label for="notice">유의사항</label>
-                        <textarea id="notice" rows="3">※ 사전 연락 없이 불참 시 향후 유사 프로젝트 참여가 제한될 수 있습니다.
+                        <div class="form-group notice-group">
+                            <label for="notice">유의사항</label>
+                            <textarea id="notice" rows="3">※ 사전 연락 없이 불참 시 향후 유사 프로젝트 참여가 제한될 수 있습니다.
 ※ 배포된 내용은 연구 목적으로만 활용되며, 외부 유출을 엄격히 금지합니다.</textarea>
-                    </div>
+                        </div>
 
-                    <div class="form-actions" style="margin-top: 2.5rem; text-align: center; padding-top: 1.5rem; border-top: 1px dashed var(--border-color);">
-                        <button type="button" id="save-data-btn" class="secondary-btn" style="width: 100%; max-width: 250px;">임시저장</button>
-                    </div>
-                </form>
+                        <div class="form-actions"
+                            style="margin-top: 2.5rem; text-align: center; padding-top: 1.5rem; border-top: 1px dashed var(--border-color);">
+                            <button type="button" id="save-data-btn" class="secondary-btn"
+                                style="width: 100%; max-width: 250px;">임시저장</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </aside>
@@ -293,8 +383,10 @@
             <!-- 상단 탭 메뉴 -->
             <div class="preview-header">
                 <div class="view-tabs">
-                    <button class="view-tab active" data-mode="feed">피드 보기 <span class="view-mode-badge">1080×1350</span></button>
-                    <button class="view-tab" data-mode="story">스토리 보기 <span class="view-mode-badge">1080×1920</span></button>
+                    <button class="view-tab active" data-mode="feed">피드 보기 <span
+                            class="view-mode-badge">1080×1350</span></button>
+                    <button class="view-tab" data-mode="story">스토리 보기 <span
+                            class="view-mode-badge">1080×1920</span></button>
                 </div>
             </div>
 
@@ -326,7 +418,8 @@
                                     <dl id="preview-dl-date">
                                         <dt id="preview-dt-date">진행 일시</dt>
                                         <dd>
-                                            <span id="preview-date-date" class="block-span">2026. 03. 25.(수) / 1일 참여</span>
+                                            <span id="preview-date-date" class="block-span">2026. 03. 25.(수) / 1일
+                                                참여</span>
                                             <span id="preview-date-time" class="block-span">14:00 ~ 16:00 (약 2시간)</span>
                                         </dd>
                                     </dl>
@@ -341,7 +434,8 @@
                                     </dl>
                                     <dl id="preview-dl-deadline">
                                         <dt id="preview-dt-deadline">신청 마감</dt>
-                                        <dd id="preview-deadline" class="semi-bold text-dark">2026. 03. 20.(금) 23:59까지</dd>
+                                        <dd id="preview-deadline" class="semi-bold text-dark">2026. 03. 20.(금) 23:59까지
+                                        </dd>
                                     </dl>
                                     <dl id="preview-dl-announcement">
                                         <dt id="preview-dt-announcement">확정 안내</dt>
@@ -352,17 +446,19 @@
 
                             <div id="banner-footer-area" class="banner-footer">
                                 <div class="notice-container">
-                                    <p id="preview-notice" class="notice-text">※ 사전 연락 없이 불참 시 향후 유사 프로젝트 참여가 제한될 수 있습니다.<br>※ 배포된 내용은 연구 목적으로만 활용되며, 외부 유출을 엄격히 금지합니다.</p>
+                                    <p id="preview-notice" class="notice-text">※ 사전 연락 없이 불참 시 향후 유사 프로젝트 참여가 제한될 수
+                                        있습니다.<br>※ 배포된 내용은 연구 목적으로만 활용되며, 외부 유출을 엄격히 금지합니다.</p>
                                 </div>
                                 <div class="brand-watermark">
-                                    <img src="assets/images/LOGO_20SLAB.png" alt="대학내일20대연구소 공식 로고" class="official-logo">
+                                    <img src="assets/images/LOGO_20SLAB.png" alt="대학내일20대연구소 공식 로고"
+                                        class="official-logo">
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- 🚀 Locofy 실시간 HTML 렌더링 래퍼 -->
                         <div id="locofy-dynamic-wrapper" style="display: none;"></div>
-                        
+
                     </div>
                 </div>
             </div>
@@ -409,4 +505,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>
