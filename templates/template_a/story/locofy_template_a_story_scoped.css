@@ -49,6 +49,10 @@
   font-weight: 800;
   font-family: inherit;
 }
+/* 제목 1줄: 부모 .frame-title 색 상속이 다른 전역 규칙에 덮일 수 있어 명시 (Vercel 등 배포 환경 일관성) */
+.template-a-story-container .line-12 {
+  color: var(--Primary-Red);
+}
 .template-a-story-container .line-22 {
   color: var(--Secondary);
 }

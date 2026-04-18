@@ -47,6 +47,9 @@
   font-weight: 800;
   font-family: inherit;
 }
+.template-a-feed-container .line-1 {
+  color: var(--Primary-Red);
+}
 .template-a-feed-container .line-2 {
   color: var(--Secondary);
 }
@@ -184,39 +187,40 @@
   width: 230px;
   position: relative;
 }
+/* 반응형: 반드시 .template-a-feed-container 안으로 한정 (스토리 모드의 동일 클래스명과 충돌 방지, Vercel/Linux에서도 동일) */
 @media screen and (max-width: 1025px) {
-  .contents-11,
-  .contents-12 {
+  .template-a-feed-container .contents-11,
+  .template-a-feed-container .contents-12 {
     flex-wrap: wrap;
   }
 }
 @media screen and (max-width: 975px) {
-  .date,
-  .list-1-contents2,
-  .list-12,
-  .time {
+  .template-a-feed-container .date,
+  .template-a-feed-container .list-1-contents2,
+  .template-a-feed-container .list-12,
+  .template-a-feed-container .time {
     font-size: var(--fs-28);
     line-height: var(--lh-36);
   }
 }
 @media screen and (max-width: 725px) {
-  .frame-contents,
-  .frame-footer,
-  .frame-title {
+  .template-a-feed-container .frame-contents,
+  .template-a-feed-container .frame-footer,
+  .template-a-feed-container .frame-title {
     padding-left: var(--padding-30);
     padding-right: var(--padding-30);
     box-sizing: border-box;
   }
 }
 @media screen and (max-width: 450px) {
-  .date,
-  .list-1-contents2,
-  .list-12,
-  .time {
+  .template-a-feed-container .date,
+  .template-a-feed-container .list-1-contents2,
+  .template-a-feed-container .list-12,
+  .template-a-feed-container .time {
     font-size: var(--fs-21);
     line-height: var(--lh-27);
   }
-  .div {
+  .template-a-feed-container .div {
     font-size: 18px;
     line-height: 26px;
   }

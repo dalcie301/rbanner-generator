@@ -608,10 +608,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }
                             }
                         } else {
-                            setTimeout(() => {
-                                const el = document.getElementById(itemData.inputId);
-                                if (el) el.value = itemData.content;
-                            }, 0);
+                            // [Vercel/동기화] setTimeout(0)으로 미루면 초기 runLayoutEngine(100ms)보다 늦게 값이 들어가
+                            // '입력 안됨'·빈 미리보기가 남을 수 있어, DOM에 붙인 직후 동기로 값을 넣습니다.
+                            const el = document.getElementById(itemData.inputId);
+                            if (el) el.value = itemData.content;
                         }
                     } else if (itemData.type === 'dynamic') {
                         const contentInput = domEl.querySelector('.dynamic-content-input');
@@ -631,6 +631,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         el.dispatchEvent(new Event('input'));
                     }
                 });
+                // [복구 후] data-initialized 때문에 initTitleDropdown이 다시 안 도는 경우 대비: dt/표시 라벨만 즉시 동기화
+                document.querySelectorAll('.item-label-group').forEach(syncTitleDropdown);
+                requestAnimationFrame(() => runLayoutEngine());
             }, 10);
 
         } catch (e) {
@@ -881,6 +884,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const infoListDls = () => document.querySelectorAll('.info-list dl');
     const infoListDds = () => document.querySelectorAll('.info-list dd');
 
+    /**
+     * Locofy A: index.html 안의 <template id="...">만 사용합니다 (외부 HTML fetch 없음).
+     * 피드는 .line-1 / .line-2, 스토리는 .line-12 / .line-22 가 있어야 하므로, 이 마커로 주입 여부를 검증합니다.
+     * (dataset만 믿으면 innerHTML 실패·캐시 등으로 스토리 모드인데 피드 DOM이 남는 경우가 생길 수 있음)
+     */
+    const LOCIFY_TEMPLATE_IDS = { feed: 'tpl-locofy-a-feed', story: 'tpl-locofy-a-story' };
+
+    const locofyInjectedDomMatchesMode = (wrapper, mode) => {
+        if (!wrapper) return false;
+        const inner = wrapper.querySelector('.template-a-feed');
+        if (!inner) return false;
+        const hasFeedLines = !!inner.querySelector('.line-1');
+        const hasStoryLines = !!inner.querySelector('.line-12');
+        if (mode === 'feed') return hasFeedLines && !hasStoryLines;
+        if (mode === 'story') return hasStoryLines && !hasFeedLines;
+        return false;
+    };
+
+    /** <template>.content.cloneNode — innerHTML보다 브라우저 간 안정적이고, fragment 구조를 그대로 유지합니다. */
+    const injectLocofyTemplateClone = (wrapper, mode) => {
+        const id = LOCIFY_TEMPLATE_IDS[mode];
+        const tpl = id ? document.getElementById(id) : null;
+        if (!tpl || !tpl.content) return false;
+        wrapper.replaceChildren(tpl.content.cloneNode(true));
+        return true;
+    };
+
     /* ------------------------------------------------
        메인 최적화 루프 (단계별)
     ------------------------------------------------- */
@@ -999,16 +1029,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const isStoryMode = currentMode === 'story';
 
             if (isTemplateA && (isFeedMode || isStoryMode)) {
-                // 1) 동적 파일 로드 구현체 (개발망 접근 제한 우회용 네이티브 템플릿 로드 적용 완료✨)
-                if (locofyDynamicWrapper.dataset.activeMode !== currentMode) {
-                    const templateId = isFeedMode ? 'tpl-locofy-a-feed' : 'tpl-locofy-a-story';
-                    const TPL = document.getElementById(templateId);
-                    if (TPL) {
-                         locofyDynamicWrapper.innerHTML = TPL.innerHTML;
+                const modeKey = isFeedMode ? 'feed' : 'story';
+                // 모드가 바뀌었거나, DOM에 피드/스토리 마커가 현재 모드와 불일치하면 <template>에서 다시 주입
+                const mustReloadTemplate =
+                    locofyDynamicWrapper.dataset.activeMode !== currentMode ||
+                    !locofyInjectedDomMatchesMode(locofyDynamicWrapper, modeKey);
+
+                if (mustReloadTemplate) {
+                    const injected = injectLocofyTemplateClone(locofyDynamicWrapper, modeKey);
+                    if (injected) {
+                        locofyDynamicWrapper.dataset.activeMode = currentMode;
+                    } else {
+                        // 주입 실패 시 다음 프레임에서 재시도할 수 있도록 캐시 무효화
+                        locofyDynamicWrapper.dataset.activeMode = '';
+                        console.warn('[Locofy] 템플릿을 찾지 못했습니다. id=', LOCIFY_TEMPLATE_IDS[modeKey]);
                     }
-                    locofyDynamicWrapper.className = isFeedMode ? 'template-a-feed-container' : 'template-a-story-container';
-                    locofyDynamicWrapper.dataset.activeMode = currentMode;
                 }
+
+                // 스토리/피드 스코프 CSS(.template-a-*-container)가 항상 현재 모드와 일치하도록 매 프레임 동기화
+                locofyDynamicWrapper.className = isFeedMode
+                    ? 'template-a-feed-container'
+                    : 'template-a-story-container';
 
                 // 2) 래퍼 전환
                 standardWrapper.style.display = 'none';
