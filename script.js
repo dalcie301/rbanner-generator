@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // prepend(맨위) 유지
             dynamicList.prepend(listItem);
             infoList.prepend(dl);
-
+            
             // 프리셋 기본값 지정
             const presetSelect = listItem.querySelector('.preset-title-select');
             if (presetSelect) presetSelect.value = nextPreset;
@@ -581,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         Array.from(presetSelect.options).forEach(opt => {
                             if (opt.value === oldTitle) matched = true;
                         });
-
+                        
                         if (matched) {
                             presetSelect.value = oldTitle;
                             if (customInput) customInput.classList.remove('is-active');
@@ -780,7 +780,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (previewDt) previewDt.textContent = currentTitle;
-
+            
             const displaySpan = group.querySelector('.display-title-text');
             if (displaySpan) displaySpan.textContent = currentTitle;
 
@@ -959,10 +959,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Locofy 구동 등 특정 디자인 모드에서는 absolute scale이 스크롤 높이를 비틀어버리므로 오버플로우 검사를 건너뜀
         const capacityBarWrapper = document.querySelector('.capacity-bar-wrapper');
         if (bannerCanvas.classList.contains('template-a')) {
-            isOver = false;
-            if (capacityBarWrapper) capacityBarWrapper.style.display = 'none';
+             isOver = false;
+             if (capacityBarWrapper) capacityBarWrapper.style.display = 'none';
         } else {
-            if (capacityBarWrapper) capacityBarWrapper.style.display = 'block';
+             if (capacityBarWrapper) capacityBarWrapper.style.display = 'block';
         }
 
         if (capacityBar) {
@@ -985,7 +985,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     .forEach(el => el.classList.remove('input-overflow-warning'));
             }
         }
-
+        
         // ==========================================
         // 🚀 [추가] Locofy 템플릿 A 통합 및 데이터 바인딩
         // ==========================================
@@ -996,86 +996,127 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isTemplateA = bannerCanvas.classList.contains('template-a');
             const isFeedMode = currentMode === 'feed';
+            const isStoryMode = currentMode === 'story';
 
-            if (isTemplateA) {
-                // 1) 모드에 맞는 템플릿 로드
+            if (isTemplateA && (isFeedMode || isStoryMode)) {
+                // 1) 동적 파일 로드 구현체 (개발망 접근 제한 우회용 네이티브 템플릿 로드 적용 완료✨)
                 if (locofyDynamicWrapper.dataset.activeMode !== currentMode) {
                     const templateId = isFeedMode ? 'tpl-locofy-a-feed' : 'tpl-locofy-a-story';
                     const TPL = document.getElementById(templateId);
                     if (TPL) {
-                        locofyDynamicWrapper.innerHTML = TPL.innerHTML;
+                         locofyDynamicWrapper.innerHTML = TPL.innerHTML;
                     }
-                    // 스토리일 때는 별도의 컨테이너 클래스를 주어 CSS 충돌 방지
                     locofyDynamicWrapper.className = isFeedMode ? 'template-a-feed-container' : 'template-a-story-container';
                     locofyDynamicWrapper.dataset.activeMode = currentMode;
                 }
 
+                // 2) 래퍼 전환
                 standardWrapper.style.display = 'none';
                 locofyDynamicWrapper.style.display = 'block';
 
-                // [수정] 스토리/피드 공통으로 루트 요소를 찾도록 변경
                 const targetWrapper = locofyDynamicWrapper.querySelector('.template-a-feed');
                 if (!targetWrapper) return;
 
+                const containerClass = isFeedMode ? 'template-a-feed-container' : 'template-a-story-container';
                 const nativeWidth = 1080;
-                const nativeHeight = isFeedMode ? 1350 : 1920; // 스토리 높이 1920 적용 확인
+                const nativeHeight = isFeedMode ? 1350 : 1920;
 
-                // 2) CSS 스케일링 (강제 높이 지정)
+                // 2) CSS 스케일링
                 const currentWidth = bannerCanvas.clientWidth || 480;
                 const scaleVal = currentWidth / nativeWidth;
-
+                targetWrapper.style.position = 'absolute';
+                targetWrapper.style.top = '0';
+                targetWrapper.style.left = '0';
+                targetWrapper.style.transformOrigin = 'top left';
                 targetWrapper.style.transform = `scale(${scaleVal})`;
-                targetWrapper.style.height = `${nativeHeight}px`; // 여기서 1920px로 강제 확장!
-
+                targetWrapper.style.width = `${nativeWidth}px`;
+                targetWrapper.style.height = `${nativeHeight}px`;
+                
+                bannerCanvas.style.position = 'relative';
                 bannerCanvas.style.height = `${nativeHeight * scaleVal}px`;
 
-                // 3) 데이터 바인딩 (색상 강제 적용 포함)
+                // 3) 데이터 바인딩 로직
+                // (a) 제목
                 const title1Selector = isFeedMode ? '.line-1' : '.line-12';
                 const title2Selector = isFeedMode ? '.line-2' : '.line-22';
-
                 const locofyTitle1 = targetWrapper.querySelector(title1Selector);
                 const locofyTitle2 = targetWrapper.querySelector(title2Selector);
+                if (locofyTitle1 && previewTitleLine1) locofyTitle1.textContent = previewTitleLine1.textContent;
+                if (locofyTitle2 && previewTitleLine2) locofyTitle2.textContent = previewTitleLine2.textContent;
 
-                // [2번 문제 해결] 제목 색상 강제 부여
-                if (locofyTitle1) {
-                    locofyTitle1.textContent = previews.titleLine1.textContent;
-                    locofyTitle1.style.color = 'var(--primary)'; // 테마색 강제 적용
-                }
-                if (locofyTitle2) {
-                    locofyTitle2.textContent = previews.titleLine2.textContent;
-                    locofyTitle2.style.color = '#111111'; // 두번째 줄 검정색 고정
-                }
-
-                // (b) 동적 리스트 및 기타 데이터 매핑 (기존 로직 유지하되 색상 보강)
+                // (b) 동적 리스트 렌더링
                 const frameContents = targetWrapper.querySelector('.frame-contents');
                 if (frameContents) {
                     frameContents.innerHTML = '';
                     infoListDls().forEach(dl => {
                         const dtText = dl.querySelector('dt').textContent;
-                        const ddText = dl.querySelector('dd').textContent;
                         const bodyDiv = document.createElement('div');
+                        
+                        if (dl.id === 'preview-dl-date') {
+                            bodyDiv.className = `contents-11 ${containerClass}`;
+                            const listCls = isFeedMode ? 'list-2' : 'list-22';
+                            const titleCls = isFeedMode ? 'list-12' : 'list-14';
+                            const contentWrapCls = isFeedMode ? 'list-2-contents' : 'list-2-contents2';
+                            const dateCls = isFeedMode ? 'date' : 'date2';
+                            const timeCls = isFeedMode ? 'time' : 'time2';
+                            bodyDiv.innerHTML = `
+                              <div class="${listCls}">
+                                <h2 class="${titleCls}">${dtText}</h2>
+                              </div>
+                              <div class="${contentWrapCls}">
+                                <h2 class="${dateCls}">${document.getElementById('preview-date-date').textContent}</h2>
+                                <h2 class="${timeCls}">${document.getElementById('preview-date-time').textContent}</h2>
+                              </div>
+                            `;
+                        } else {
+                            bodyDiv.className = `contents-12 ${containerClass}`;
+                            const ddText = dl.querySelector('dd').textContent;
+                            const listCls = isFeedMode ? 'list-1' : 'list-13';
+                            const titleCls = isFeedMode ? 'list-12' : 'list-14';
+                            // In Locofy some are list-1-contents, some list-5-contents, let's use list-1-contents everywhere for simplicity
+                            const contentWrapCls = isFeedMode ? 'list-1-contents' : 'list-1-contents3';
+                            const textCls = isFeedMode ? 'list-1-contents2' : 'list-1-contents4';
+                            bodyDiv.innerHTML = `
+                              <div class="${listCls}">
+                                <h2 class="${titleCls}">${dtText}</h2>
+                              </div>
+                              <div class="${contentWrapCls}">
+                                <h2 class="${textCls}">${ddText}</h2>
+                              </div>
+                            `;
+                        }
+                        
+                        // 하이라이트(강조) 적용 연동
+                        if (dl.classList.contains('highlight-row')) {
+                             bodyDiv.style.backgroundColor = 'rgba(252, 91, 79, 0.04)';
+                             const titles = bodyDiv.querySelectorAll('h2');
+                             titles.forEach(t => {
+                                t.style.color = 'var(--Primary-Red)';
+                                t.style.fontWeight = '800';
+                             });
+                        }
 
-                        // 하이라이트 여부에 따라 색상 분기
-                        const isHighlight = dl.classList.contains('highlight-row');
-                        const textColor = isHighlight ? 'var(--primary)' : '#111111';
-                        const fontWeight = isHighlight ? '800' : '400';
-
-                        bodyDiv.className = dl.id === 'preview-dl-date' ? 'contents-11' : 'contents-12';
-                        bodyDiv.style.borderTop = '1px solid #EAEAEA';
-                        bodyDiv.style.display = 'flex';
-
-                        // Locofy 구조 복제 (내부 팀용 최적화)
-                        bodyDiv.innerHTML = `
-                            <div style="width:228px; padding:28px 0; color:#666;">${dtText}</div>
-                            <div style="flex:1; padding:28px 0; color:${textColor}; font-weight:${fontWeight};">${ddText}</div>
-                        `;
                         frameContents.appendChild(bodyDiv);
                     });
                 }
+
+                // (c) 유의사항
+                const noticeHTML = document.getElementById('preview-notice').innerHTML;
+                const locofyNotice = targetWrapper.querySelector('.locofy-notice');
+                if (locofyNotice) {
+                    locofyNotice.innerHTML = noticeHTML;
+                }
+
             } else {
-                standardWrapper.style.display = '';
+                // 원상 복구
+                standardWrapper.style.display = ''; 
                 locofyDynamicWrapper.style.display = 'none';
-                bannerCanvas.style.height = '';
+                locofyDynamicWrapper.innerHTML = '';
+                locofyDynamicWrapper.dataset.activeMode = '';
+                locofyDynamicWrapper.className = '';
+                
+                bannerCanvas.style.height = ''; 
+                bannerCanvas.style.position = '';
             }
         };
 
