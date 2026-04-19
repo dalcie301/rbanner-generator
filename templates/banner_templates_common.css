@@ -23,7 +23,8 @@
   --template-secondary: #1a1a1a;
   --template-muted: #8f8f8f;
   --template-divider: #e1e1e1;
-  --highlight-bg: rgba(252, 91, 79, 0.04);
+  /* 테마 컬러 기반 약 10% 투명도 음영 (루트의 --primary-tint-15를 우선 사용) */
+  --highlight-bg: var(--primary-tint-15, rgba(252, 91, 79, 0.10));
   position: relative;
   width: 1080px;
   overflow: hidden;

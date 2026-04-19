@@ -13,6 +13,8 @@
     --shadow-sm: 0 2px 4px rgba(0,0,0,0.03);
     --shadow-md: 0 8px 24px rgba(0,0,0,0.06); /* 그림자 짙게 조정 */
     --shadow-lg: 0 16px 32px rgba(0,0,0,0.1);
+    /* 테마 컬러 기반 약 10% 투명도 음영 (JS에서 선택 컬러에 맞춰 재계산됨) */
+    --primary-tint-15: rgba(252, 91, 79, 0.10);
 }
 
 * {
@@ -113,7 +115,7 @@ body {
 
 .tpl-btn.active {
     border-color: var(--primary);
-    background-color: rgba(252, 91, 79, 0.05);
+    background-color: var(--primary-tint-15);
     color: var(--primary);
     font-weight: 700;
 }
@@ -881,7 +883,7 @@ body {
     position: absolute;
     top: 0.125rem; bottom: 0.125rem;
     left: -1rem; right: -1rem;
-    background-color: rgba(252, 91, 79, 0.04);
+    background-color: var(--primary-tint-15);
     border-radius: 0.375rem;
     z-index: 0;
     pointer-events: none;
@@ -1068,4 +1070,15 @@ select.dynamic-content-input {
     font-size: 0.75rem;
     color: var(--text-muted);
     flex-shrink: 0;
+}
+
+.site-footer__email-link {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.2s ease;
+}
+
+.site-footer__email-link:hover {
+    color: var(--text-title);
 }

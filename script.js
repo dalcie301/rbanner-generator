@@ -165,6 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
     themeColorInput.addEventListener('input', (e) => {
         const color = e.target.value;
         root.style.setProperty('--primary', color);
+        // 선택한 테마 컬러를 약 10% 투명도의 음영 컬러로도 함께 노출
+        const tint = hex2rgba(color, 0.10);
+        root.style.setProperty('--primary-tint-15', tint);
     });
 
     // 초기 색상 세팅 (초기 로딩 시 한번 실행하여 rgba 배경 처리)
