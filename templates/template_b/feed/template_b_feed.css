@@ -1,0 +1,42 @@
+.banner-template--b-feed {
+  --label-width: 214px;
+  --value-width: 674px;
+  --row-font-size: 34px;
+  --notice-font-size: 22px;
+  --notice-color: #fff;
+  --logo-width: 230px;
+  --logo-height: 36.892px;
+  height: 1350px;
+  display: flex;
+  flex-direction: column;
+  background: var(--template-primary);
+}
+
+.banner-template--b-feed .banner-template__panel {
+  margin: 36px 36px 0;
+  height: 1136px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 20px 20px 6px 6px;
+  overflow: hidden;
+}
+
+.banner-template--b-feed .banner-template__title-block {
+  min-height: 296px;
+  padding: 72px 52px 32px;
+}
+
+.banner-template--b-feed .banner-template__body {
+  flex: 1;
+  padding: 0 52px;
+}
+
+.banner-template--b-feed .banner-template__footer {
+  padding: 56px 48px;
+  background: var(--template-primary);
+}
+
+.banner-template--b-feed .banner-template__notice {
+  flex: 1;
+}

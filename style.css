@@ -22,17 +22,26 @@
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
+html, body {
+    height: 100%;
+}
+
 body {
     background-color: var(--bg-color);
     color: var(--text-main);
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
+    overflow-x: auto;
 }
 
 .app-container {
     display: flex;
-    height: 100vh;
-    width: 100vw;
+    flex: 1;
+    min-height: 0;
+    min-width: 1200px;
+    overflow: hidden;
 }
 
 /* -------------------------------------
@@ -46,6 +55,7 @@ body {
     border-right: 1px solid var(--border-color);
     box-shadow: 2px 0 10px rgba(0,0,0,0.02);
     z-index: 10;
+    min-height: 0;
 }
 
 /* Col 1: 기초 설정 */
@@ -134,6 +144,38 @@ body {
     object-fit: contain;
 }
 
+.logo-upload-actions {
+    margin-top: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.logo-upload-actions button {
+    flex: 1;
+    height: 56px;
+    padding: 0 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--border-color);
+    background-color: #FFFFFF;
+    cursor: pointer;
+}
+
+.logo-upload-actions button:hover {
+    border-color: #CCC;
+    background-color: #F8F8F8;
+}
+
+.logo-upload-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* Col 2: 콘텐츠 편집 */
 .build-col-content {
     flex: 1;
@@ -145,6 +187,7 @@ body {
     padding: 5px; /* 스크롤바가 테두리에서 5px 떨어지도록 안쪽 여백 설정 */
     background-color: var(--panel-bg);
     transition: all 0.3s ease;
+    min-height: 0;
 }
 
 .build-panel-scroller {
@@ -516,6 +559,7 @@ body {
     background-color: var(--bg-color); /* 요청하신 깔끔한 연한 회색 f5f5f5 */
     position: relative;
     z-index: 1;
+    min-height: 0;
 }
 
 /* 상단 탭 메뉴 */
@@ -573,6 +617,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    min-height: 0;
 }
 
 /* 캔버스 그림자 카드 래퍼 */
@@ -876,11 +921,6 @@ body {
     word-break: keep-all; /* 단어 단위로 넘어가도록 잘림 현상 방지 */
 }
 
-.locofy-notice {
-    white-space: pre-wrap;
-    word-break: keep-all;
-}
-
 .brand-watermark {
     display: flex;
     align-items: center;
@@ -892,54 +932,7 @@ body {
     object-fit: contain;
 }
 
-/* 템플릿 로직 */
-.template-a .banner-header {
-    display: block; /* 템플릿 A 기본 여백 */
-}
-
-/* 템플릿 B 스타일 정의 */
-.template-b {
-    border: 36px solid #E53737;
-    position: relative;
-}
-
-.template-b .canvas-top-line {
-    display: none; /* 상단 포인트 라인 숨기기 */
-}
-
-/* 테두리가 36px이나 부피를 차지하므로, 패딩을 조금 줄여 오토레이아웃 여유 공간 확보 */
-.template-b .banner-content {
-    padding: 2.5rem 2.5rem 1rem;
-}
-
-.template-b .banner-header {
-    margin-bottom: 2rem;
-}
-
-/* template-b 여백 리셋: 모든 항목의 공통 간격 통일 목적 */
-
-.template-b .banner-footer {
-    padding: 2rem 2.5rem 2rem;
-}
-
-/* 템플릿 B에서 로고를 하단 테두리 중앙에 배치 */
-.template-b .brand-watermark {
-    position: absolute;
-    bottom: -28px; /* 36px 테두리의 중앙 (로고 높이 20px 고려 시 -28px에 위치) */
-    right: 2.5rem; /* 본문 텍스트 패딩(2.5rem)과 우측 정렬 */
-    z-index: 10;
-}
-
-/* 템플릿 B '★ 강조' 항목의 색상을 테두리 색상과 동일하게 #E53737로 맞춰줌 */
-.template-b .highlight-row dt,
-.template-b .highlight-row dd {
-    color: #E53737 !important;
-}
-
-/* ::before 가상 요소에 템플릿 B 전용 붉은 배경 덮어씌움 */
-.template-b .highlight-row::before {
-    background-color: rgba(229, 55, 55, 0.04) !important;
-}
+/* 템플릿 실렌더링은 템플릿 전용 CSS 파일에서 처리합니다. */
 
 /* -------------------------------------
    하단 저장 액션 패널
@@ -951,6 +944,7 @@ body {
     display: flex;
     gap: 1rem;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .download-btn {
@@ -1041,11 +1035,6 @@ body {
     transform: translateY(-0.25rem); /* 살짝 위로 */
 }
 
-/* 템플릿 B에 특화된 포지션(내부 공백이 다를 경우 필요, 지금은 highlight-row 기준이므로 동일) */
-.template-b .reward-img {
-    right: -1.5rem;
-}
-
 /* dl/dd 높이 최대값 지정 (말줄임/폰트 자동 축소 기준점) */
 .info-list dd {
     display: flex;
@@ -1070,4 +1059,13 @@ select.dynamic-content-input {
 .custom-title-input {
     margin-top: 0.5rem;
     width: 100%;
+}
+
+/* 사이트 하단 푸터 */
+.site-footer {
+    text-align: center;
+    padding: 0.75rem 1rem 1.25rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
 }

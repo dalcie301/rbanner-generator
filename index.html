@@ -6,10 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>공고뚝딱 : Research Banner Builder</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="templates/template_a/feed/locofy_global.css">
-    <link rel="stylesheet" href="templates/template_a/feed/locofy_template_a_scoped.css">
-    <link rel="stylesheet" href="templates/template_a/story/locofy_template_a_story_global.css">
-    <link rel="stylesheet" href="templates/template_a/story/locofy_template_a_story_scoped.css">
+    <link rel="stylesheet" href="templates/banner_templates_common.css">
+    <link rel="stylesheet" href="templates/template_a/feed/template_a_feed.css">
+    <link rel="stylesheet" href="templates/template_a/story/template_a_story.css">
+    <link rel="stylesheet" href="templates/template_b/feed/template_b_feed.css">
+    <link rel="stylesheet" href="templates/template_b/story/template_b_story.css">
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -41,6 +42,19 @@
                     <h3>공식 로고</h3>
                     <div class="logo-preview-box">
                         <img src="assets/images/LOGO_20SLAB.png" alt="대학내일20대연구소 로고" class="panel-logo">
+                    </div>
+                    <div class="logo-upload-actions">
+                        <button type="button" id="logo-upload-btn">
+                            <span class="logo-upload-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+                                    <polyline points="7 9 12 4 17 9" />
+                                    <line x1="12" y1="4" x2="12" y2="16" />
+                                </svg>
+                            </span>
+                            <span>로고 업로드(1회 적용)</span>
+                        </button>
+                        <input type="file" id="logo-upload-input" accept="image/*" style="display: none;">
                     </div>
                 </div>
             </div>
@@ -251,7 +265,6 @@
                                     <div class="form-group">
 
                                         <select id="benefit" class="reward-select dynamic-content-input">
-                                            <option value="">리워드 선택 안함</option>
                                             <option value="네이버페이 3천원(전원)">네이버페이 3천원(전원)</option>
                                             <option value="네이버페이 5천원(전원)">네이버페이 5천원(전원)</option>
                                             <option value="커리어톡 3천원(전원)">커리어톡 3천원(전원)</option>
@@ -456,8 +469,8 @@
                             </div>
                         </div>
 
-                        <!-- 🚀 Locofy 실시간 HTML 렌더링 래퍼 -->
-                        <div id="locofy-dynamic-wrapper" style="display: none;"></div>
+                        <!-- 템플릿 전용 실제 렌더링 래퍼 -->
+                        <div id="template-render-wrapper" style="display: none;"></div>
 
                     </div>
                 </div>
@@ -470,40 +483,75 @@
         </main>
     </div>
 
-    <!-- 🚀 Locofy 실시간 HTML 렌더링용 템플릿 (CORS 우회 및 독립적 로드) -->
-    <template id="tpl-locofy-a-feed">
-        <div class="template-a-feed">
-            <div class="head-bar"></div>
-            <header class="frame-title">
-                <h2 class="line-1"></h2>
-                <h1 class="line-2"></h1>
+    <!-- Figma MCP 기준 4종 템플릿 -->
+    <template id="tpl-template-a-feed">
+        <article class="banner-template banner-template--a-feed" data-template-root data-template-key="template-a:feed">
+            <div class="banner-template__bar banner-template__bar--top"></div>
+            <header class="banner-template__title-block">
+                <p class="banner-template__title banner-template__title--line1" data-field="title-line1"></p>
+                <h1 class="banner-template__title banner-template__title--line2" data-field="title-line2"></h1>
             </header>
-            <main class="frame-contents">
-            </main>
-            <div class="frame-footer">
-                <div class="div locofy-notice"></div>
-                <img class="logo-20slab-red-icon" loading="lazy" alt="로고" src="assets/images/LOGO_20SLAB.png" />
-            </div>
-        </div>
+            <main class="banner-template__body" data-slot="items"></main>
+            <footer class="banner-template__footer banner-template__footer--side">
+                <div class="banner-template__notice" data-field="notice"></div>
+                <img class="banner-template__logo" data-field="logo" alt="대학내일20대연구소 로고">
+            </footer>
+        </article>
     </template>
 
-    <template id="tpl-locofy-a-story">
-        <div class="template-a-feed">
-            <div class="head-bar"></div>
-            <header class="frame-title">
-                <h2 class="line-12"></h2>
-                <h1 class="line-22"></h1>
+    <template id="tpl-template-a-story">
+        <article class="banner-template banner-template--a-story" data-template-root data-template-key="template-a:story">
+            <div class="banner-template__bar banner-template__bar--top"></div>
+            <header class="banner-template__title-block banner-template__title-block--centered">
+                <p class="banner-template__title banner-template__title--line1" data-field="title-line1"></p>
+                <h1 class="banner-template__title banner-template__title--line2" data-field="title-line2"></h1>
             </header>
-            <main class="frame-contents">
-            </main>
-            <div class="frame-footer">
-                <div class="div2 locofy-notice"></div>
-                <img class="logo-20slab-red-icon2" loading="lazy" alt="" src="assets/images/LOGO_20SLAB.png" />
+            <main class="banner-template__body" data-slot="items"></main>
+            <footer class="banner-template__footer banner-template__footer--stack">
+                <div class="banner-template__notice" data-field="notice"></div>
+                <img class="banner-template__logo" data-field="logo" alt="대학내일20대연구소 로고">
+            </footer>
+            <div class="banner-template__bar banner-template__bar--bottom"></div>
+        </article>
+    </template>
+
+    <template id="tpl-template-b-feed">
+        <article class="banner-template banner-template--b-feed" data-template-root data-template-key="template-b:feed">
+            <div class="banner-template__panel">
+                <header class="banner-template__title-block">
+                    <p class="banner-template__title banner-template__title--line1" data-field="title-line1"></p>
+                    <h1 class="banner-template__title banner-template__title--line2" data-field="title-line2"></h1>
+                </header>
+                <main class="banner-template__body" data-slot="items"></main>
             </div>
-        </div>
+            <footer class="banner-template__footer banner-template__footer--side">
+                <div class="banner-template__notice" data-field="notice"></div>
+                <img class="banner-template__logo" data-field="logo" alt="대학내일20대연구소 로고">
+            </footer>
+        </article>
+    </template>
+
+    <template id="tpl-template-b-story">
+        <article class="banner-template banner-template--b-story" data-template-root data-template-key="template-b:story">
+            <header class="banner-template__panel banner-template__panel--title">
+                <div class="banner-template__title-block banner-template__title-block--centered">
+                    <p class="banner-template__title banner-template__title--line1" data-field="title-line1"></p>
+                    <h1 class="banner-template__title banner-template__title--line2" data-field="title-line2"></h1>
+                </div>
+            </header>
+            <main class="banner-template__panel banner-template__panel--body banner-template__body" data-slot="items"></main>
+            <footer class="banner-template__panel banner-template__panel--footer banner-template__footer banner-template__footer--stack">
+                <div class="banner-template__notice" data-field="notice"></div>
+                <img class="banner-template__logo" data-field="logo" alt="대학내일20대연구소 로고">
+            </footer>
+        </article>
     </template>
 
     <script src="script.js"></script>
+
+    <footer class="site-footer">
+        © 2026 Darcie Kim. Built with love for 20slab✨
+    </footer>
 </body>
 
 </html>

@@ -1,0 +1,36 @@
+.banner-template--a-feed {
+  --label-width: 228px;
+  --value-width: 716px;
+  --row-font-size: 35px;
+  --notice-font-size: 22px;
+  --logo-width: 230px;
+  --logo-height: 36.892px;
+  height: 1350px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.banner-template--a-feed .banner-template__bar--top {
+  height: 32px;
+  background: var(--template-primary);
+  flex-shrink: 0;
+}
+
+.banner-template--a-feed .banner-template__title-block {
+  padding: 60px;
+}
+
+.banner-template--a-feed .banner-template__body {
+  flex: 1;
+  padding: 0 60px;
+}
+
+.banner-template--a-feed .banner-template__footer {
+  padding: 56px 60px;
+  background: #fff;
+}
+
+.banner-template--a-feed .banner-template__notice {
+  flex: 1;
+}

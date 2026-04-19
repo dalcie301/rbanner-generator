@@ -1,4 +1,65 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const LAST_STATE_KEYS = {
+        template: 'bannerMaker:lastTemplate',
+        mode: 'bannerMaker:lastMode'
+    };
+
+    // 공식 로고 업로드 상태 (세션 한정)
+    let uploadedLogoSrc = null;
+
+    const panelLogo = document.querySelector('.panel-logo');
+    const logoUploadBtn = document.getElementById('logo-upload-btn');
+    const logoUploadInput = document.getElementById('logo-upload-input');
+    const defaultPanelLogoSrc = panelLogo ? panelLogo.src : '';
+
+    const applyLogoPreviewToPanel = () => {
+        if (!panelLogo) return;
+        panelLogo.src = uploadedLogoSrc || defaultPanelLogoSrc;
+    };
+
+    const applyLogoPreviewToWatermark = (targetTpl) => {
+        const logoImg = document.querySelector('.brand-watermark .official-logo');
+        if (!logoImg) return;
+        if (uploadedLogoSrc) {
+            logoImg.src = uploadedLogoSrc;
+            return;
+        }
+        if (targetTpl === 'template-b') {
+            logoImg.src = 'assets/images/LOGO_20SLAB_white.png';
+        } else {
+            logoImg.src = 'assets/images/LOGO_20SLAB.png';
+        }
+    };
+
+    const getEffectiveLogoSrc = (defaultSrc) => uploadedLogoSrc || defaultSrc;
+
+    if (logoUploadBtn && logoUploadInput) {
+        logoUploadBtn.addEventListener('click', () => {
+            logoUploadInput.click();
+        });
+
+        logoUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            if (file.type && !file.type.startsWith('image/')) {
+                alert('이미지 파일만 업로드할 수 있습니다.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                if (typeof reader.result !== 'string') return;
+                uploadedLogoSrc = reader.result;
+                applyLogoPreviewToPanel();
+                applyLogoPreviewToWatermark(document.querySelector('.tpl-btn.active')?.dataset.tpl || 'template-a');
+                if (typeof runLayoutEngine === 'function') {
+                    requestAnimationFrame(() => runLayoutEngine());
+                }
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        });
+    }
+
     // 폼 요소 선택
     const inputs = {
         titleLine1: document.getElementById('title-line1'),
@@ -133,28 +194,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 clickedBtn.classList.add('active');
 
                 // 기존 템플릿 클래스 삭제 후 새로운 템플릿 할당
-                const targetTpl = clickedBtn.dataset.tpl; // 'template-a' 또는 'template-b'
+                const targetTpl = clickedBtn.dataset.tpl || 'template-a'; // 'template-a' 또는 'template-b'
                 bannerCanvas.classList.remove('template-a', 'template-b');
 
-                // 로고 스위칭 처리
-                const logoImg = document.querySelector('.brand-watermark .official-logo');
-                if (targetTpl === 'template-b') {
-                    if (logoImg) logoImg.src = 'assets/images/LOGO_20SLAB_white.png';
-                } else {
-                    if (logoImg) logoImg.src = 'assets/images/LOGO_20SLAB.png';
-                }
+                // 로고 스위칭 처리 (업로드 로고 우선)
+                applyLogoPreviewToWatermark(targetTpl);
+
+                // 마지막 사용 템플릿 세션 저장
+                try {
+                    sessionStorage.setItem(LAST_STATE_KEYS.template, targetTpl);
+                } catch (_) {}
 
                 if (targetTpl) {
                     bannerCanvas.classList.add(targetTpl);
                 }
+
+                // 템플릿 A/B 모두 같은 렌더러를 쓰므로, 버튼 전환 직후 미리보기를 다시 그립니다.
+                requestAnimationFrame(() => setTimeout(runLayoutEngine, 0));
             });
         });
 
-        // 페이지 초기 로드 시 '템플릿 A'를 기본 활성화 상태로 확실히 고정 (초기화)
-        const defaultTplBtn = document.querySelector('.tpl-btn[data-tpl="template-a"]');
-        if (defaultTplBtn) {
-            defaultTplBtn.click();
-        }
     }
 
     // ---------------------------------------------
@@ -184,7 +243,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     }).then((highResCanvas) => {
                         // 2. 가로 1080px에 맞춰 비율대로 최종 캔버스 생성
                         const targetWidth = 1080;
-                        const targetHeight = (targetWidth / highResCanvas.width) * highResCanvas.height;
+                        const ratioHeightCalc = (targetWidth / highResCanvas.width) * highResCanvas.height;
+
+                        // 스토리 모드는 9:16 비율을 강제해 1080x1920으로 고정,
+                        // 그 외 모드는 계산값을 반올림하여 사용
+                        let targetHeight = ratioHeightCalc;
+                        if (currentMode === 'story') {
+                            targetHeight = Math.round((targetWidth * 16) / 9);
+                        } else {
+                            targetHeight = Math.round(ratioHeightCalc);
+                        }
 
                         const finalCanvas = document.createElement('canvas');
                         finalCanvas.width = targetWidth;
@@ -885,30 +953,195 @@ document.addEventListener('DOMContentLoaded', () => {
     const infoListDds = () => document.querySelectorAll('.info-list dd');
 
     /**
-     * Locofy A: index.html 안의 <template id="...">만 사용합니다 (외부 HTML fetch 없음).
-     * 피드는 .line-1 / .line-2, 스토리는 .line-12 / .line-22 가 있어야 하므로, 이 마커로 주입 여부를 검증합니다.
-     * (dataset만 믿으면 innerHTML 실패·캐시 등으로 스토리 모드인데 피드 DOM이 남는 경우가 생길 수 있음)
+     * Figma MCP 기준 4개 화면을 하나의 템플릿 레지스트리로 관리합니다.
+     * - 템플릿 A/B를 같은 주입 방식으로 렌더링
+     * - 피드/스토리 별 고정 네이티브 높이를 함께 관리
+     * - 로고 자산도 템플릿 메타에서 결정
      */
-    const LOCIFY_TEMPLATE_IDS = { feed: 'tpl-locofy-a-feed', story: 'tpl-locofy-a-story' };
-
-    const locofyInjectedDomMatchesMode = (wrapper, mode) => {
-        if (!wrapper) return false;
-        const inner = wrapper.querySelector('.template-a-feed');
-        if (!inner) return false;
-        const hasFeedLines = !!inner.querySelector('.line-1');
-        const hasStoryLines = !!inner.querySelector('.line-12');
-        if (mode === 'feed') return hasFeedLines && !hasStoryLines;
-        if (mode === 'story') return hasStoryLines && !hasFeedLines;
-        return false;
+    const TEMPLATE_REGISTRY = {
+        'template-a:feed': {
+            id: 'tpl-template-a-feed',
+            nativeWidth: 1080,
+            nativeHeight: 1350,
+            logoSrc: 'assets/images/LOGO-20SLAB-Red.svg'
+        },
+        'template-a:story': {
+            id: 'tpl-template-a-story',
+            nativeWidth: 1080,
+            nativeHeight: 1920,
+            logoSrc: 'assets/images/LOGO-20SLAB-Red.svg'
+        },
+        'template-b:feed': {
+            id: 'tpl-template-b-feed',
+            nativeWidth: 1080,
+            nativeHeight: 1350,
+            logoSrc: 'assets/images/LOGO_20SLAB_white.png'
+        },
+        'template-b:story': {
+            id: 'tpl-template-b-story',
+            nativeWidth: 1080,
+            nativeHeight: 1920,
+            logoSrc: 'assets/images/LOGO-20SLAB-Red.svg'
+        }
     };
 
-    /** <template>.content.cloneNode — innerHTML보다 브라우저 간 안정적이고, fragment 구조를 그대로 유지합니다. */
-    const injectLocofyTemplateClone = (wrapper, mode) => {
-        const id = LOCIFY_TEMPLATE_IDS[mode];
-        const tpl = id ? document.getElementById(id) : null;
+    const getCurrentTemplateName = () =>
+        bannerCanvas.classList.contains('template-b') ? 'template-b' : 'template-a';
+
+    const getCurrentTemplateKey = () => `${getCurrentTemplateName()}:${currentMode}`;
+
+    const getCurrentTemplateMeta = () => TEMPLATE_REGISTRY[getCurrentTemplateKey()] || null;
+
+    const injectedTemplateMatchesKey = (wrapper, templateKey) => {
+        if (!wrapper) return false;
+        const root = wrapper.querySelector('[data-template-root]');
+        return !!root && root.dataset.templateKey === templateKey;
+    };
+
+    const injectTemplateClone = (wrapper, templateKey) => {
+        const meta = TEMPLATE_REGISTRY[templateKey];
+        const tpl = meta ? document.getElementById(meta.id) : null;
         if (!tpl || !tpl.content) return false;
         wrapper.replaceChildren(tpl.content.cloneNode(true));
         return true;
+    };
+
+    const collectBannerData = () => {
+        const previewNotice = document.getElementById('preview-notice');
+        const items = Array.from(infoListDls()).map(dl => {
+            const dt = dl.querySelector('dt');
+            const dd = dl.querySelector('dd');
+            const isDate = dl.id === 'preview-dl-date';
+
+            return {
+                id: dl.id,
+                label: dt ? dt.textContent.trim() : '',
+                type: isDate ? 'date' : 'text',
+                highlight: dl.classList.contains('highlight-row'),
+                value: isDate ? '' : (dd ? dd.textContent.trim() : ''),
+                date: isDate ? (document.getElementById('preview-date-date')?.textContent.trim() || '') : '',
+                time: isDate ? (document.getElementById('preview-date-time')?.textContent.trim() || '') : ''
+            };
+        });
+
+        return {
+            titleLine1: previewTitleLine1 ? previewTitleLine1.textContent.trim() : '',
+            titleLine2: previewTitleLine2 ? previewTitleLine2.textContent.trim() : '',
+            noticeHTML: previewNotice ? previewNotice.innerHTML : '',
+            rewardImageVisible: !!previewRewardImg && previewRewardImg.style.display !== 'none' && !!previewRewardImg.getAttribute('src'),
+            rewardImageSrc: previewRewardImg ? (previewRewardImg.getAttribute('src') || '') : '',
+            items
+        };
+    };
+
+    const createTextRow = (item, bannerData) => {
+        const row = document.createElement('div');
+        row.className = 'banner-info-row';
+
+        const label = document.createElement('div');
+        label.className = 'banner-info-row__label';
+        label.textContent = item.label;
+
+        const valueWrap = document.createElement('div');
+        valueWrap.className = 'banner-info-row__value';
+
+        const value = document.createElement('p');
+        value.className = 'banner-info-row__text';
+        value.textContent = item.value;
+        valueWrap.appendChild(value);
+
+        const isBenefitRow = item.id === 'preview-dl-benefit';
+        if (isBenefitRow && bannerData?.rewardImageVisible && bannerData.rewardImageSrc) {
+            row.classList.add('banner-info-row--with-reward');
+            const rewardImg = document.createElement('img');
+            rewardImg.className = 'banner-info-row__reward-image';
+            rewardImg.src = bannerData.rewardImageSrc;
+            rewardImg.alt = '참여 혜택 리워드 이미지';
+            valueWrap.appendChild(rewardImg);
+        }
+
+        row.appendChild(label);
+        row.appendChild(valueWrap);
+
+        if (item.highlight) {
+            row.classList.add('is-highlighted');
+        }
+
+        return row;
+    };
+
+    const createDateRow = (item) => {
+        const row = document.createElement('div');
+        row.className = 'banner-info-row banner-info-row--date';
+
+        const label = document.createElement('div');
+        label.className = 'banner-info-row__label';
+        label.textContent = item.label;
+
+        const valueWrap = document.createElement('div');
+        valueWrap.className = 'banner-info-row__value';
+
+        const dateLine = document.createElement('p');
+        dateLine.className = 'banner-info-row__date-line banner-info-row__date-line--primary';
+        dateLine.textContent = item.date;
+
+        const timeLine = document.createElement('p');
+        timeLine.className = 'banner-info-row__date-line banner-info-row__date-line--secondary';
+        timeLine.textContent = item.time;
+
+        valueWrap.appendChild(dateLine);
+        valueWrap.appendChild(timeLine);
+        row.appendChild(label);
+        row.appendChild(valueWrap);
+
+        if (item.highlight) {
+            row.classList.add('is-highlighted');
+        }
+
+        return row;
+    };
+
+    const populateTemplate = (root, bannerData, meta) => {
+        const title1 = root.querySelector('[data-field="title-line1"]');
+        const title2 = root.querySelector('[data-field="title-line2"]');
+        const notice = root.querySelector('[data-field="notice"]');
+        const logo = root.querySelector('[data-field="logo"]');
+        const itemsSlot = root.querySelector('[data-slot="items"]');
+
+        if (title1) title1.textContent = bannerData.titleLine1;
+        if (title2) title2.textContent = bannerData.titleLine2;
+        if (notice) notice.innerHTML = bannerData.noticeHTML;
+        if (logo) {
+            logo.src = getEffectiveLogoSrc(meta.logoSrc);
+            logo.alt = '대학내일20대연구소 로고';
+        }
+
+        if (itemsSlot) {
+            const fragment = document.createDocumentFragment();
+            bannerData.items.forEach(item => {
+                fragment.appendChild(item.type === 'date' ? createDateRow(item) : createTextRow(item, bannerData));
+            });
+            itemsSlot.replaceChildren(fragment);
+        }
+    };
+
+    const applyTemplateScale = (wrapper, root, meta) => {
+        const currentWidth = bannerCanvas.clientWidth || 480;
+        const scaleVal = currentWidth / meta.nativeWidth;
+
+        wrapper.className = 'banner-template-host';
+        wrapper.style.display = 'block';
+
+        root.style.position = 'absolute';
+        root.style.top = '0';
+        root.style.left = '0';
+        root.style.transformOrigin = 'top left';
+        root.style.transform = `scale(${scaleVal})`;
+        root.style.width = `${meta.nativeWidth}px`;
+        root.style.height = `${meta.nativeHeight}px`;
+
+        bannerCanvas.style.position = 'relative';
+        bannerCanvas.style.height = `${meta.nativeHeight * scaleVal}px`;
     };
 
     /* ------------------------------------------------
@@ -988,11 +1221,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Locofy 구동 등 특정 디자인 모드에서는 absolute scale이 스크롤 높이를 비틀어버리므로 오버플로우 검사를 건너뜀
         const capacityBarWrapper = document.querySelector('.capacity-bar-wrapper');
-        if (bannerCanvas.classList.contains('template-a')) {
-             isOver = false;
-             if (capacityBarWrapper) capacityBarWrapper.style.display = 'none';
+        const currentTemplateMeta = getCurrentTemplateMeta();
+        if (currentTemplateMeta) {
+            isOver = false;
+            if (capacityBarWrapper) capacityBarWrapper.style.display = 'none';
         } else {
-             if (capacityBarWrapper) capacityBarWrapper.style.display = 'block';
+            if (capacityBarWrapper) capacityBarWrapper.style.display = 'block';
         }
 
         if (capacityBar) {
@@ -1016,154 +1250,73 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // ==========================================
-        // 🚀 [추가] Locofy 템플릿 A 통합 및 데이터 바인딩
-        // ==========================================
-        const syncLocofyTemplate = () => {
-            const locofyDynamicWrapper = document.getElementById('locofy-dynamic-wrapper');
+        const syncTemplateRender = () => {
+            const templateRenderWrapper = document.getElementById('template-render-wrapper');
             const standardWrapper = document.getElementById('banner-content-wrapper');
-            if (!locofyDynamicWrapper || !standardWrapper) return;
+            if (!templateRenderWrapper || !standardWrapper) return;
 
-            const isTemplateA = bannerCanvas.classList.contains('template-a');
-            const isFeedMode = currentMode === 'feed';
-            const isStoryMode = currentMode === 'story';
+            const templateKey = getCurrentTemplateKey();
+            const meta = TEMPLATE_REGISTRY[templateKey];
 
-            if (isTemplateA && (isFeedMode || isStoryMode)) {
-                const modeKey = isFeedMode ? 'feed' : 'story';
-                // 모드가 바뀌었거나, DOM에 피드/스토리 마커가 현재 모드와 불일치하면 <template>에서 다시 주입
-                const mustReloadTemplate =
-                    locofyDynamicWrapper.dataset.activeMode !== currentMode ||
-                    !locofyInjectedDomMatchesMode(locofyDynamicWrapper, modeKey);
-
-                if (mustReloadTemplate) {
-                    const injected = injectLocofyTemplateClone(locofyDynamicWrapper, modeKey);
-                    if (injected) {
-                        locofyDynamicWrapper.dataset.activeMode = currentMode;
-                    } else {
-                        // 주입 실패 시 다음 프레임에서 재시도할 수 있도록 캐시 무효화
-                        locofyDynamicWrapper.dataset.activeMode = '';
-                        console.warn('[Locofy] 템플릿을 찾지 못했습니다. id=', LOCIFY_TEMPLATE_IDS[modeKey]);
-                    }
-                }
-
-                // 스토리/피드 스코프 CSS(.template-a-*-container)가 항상 현재 모드와 일치하도록 매 프레임 동기화
-                locofyDynamicWrapper.className = isFeedMode
-                    ? 'template-a-feed-container'
-                    : 'template-a-story-container';
-
-                // 2) 래퍼 전환
-                standardWrapper.style.display = 'none';
-                locofyDynamicWrapper.style.display = 'block';
-
-                const targetWrapper = locofyDynamicWrapper.querySelector('.template-a-feed');
-                if (!targetWrapper) return;
-
-                const containerClass = isFeedMode ? 'template-a-feed-container' : 'template-a-story-container';
-                const nativeWidth = 1080;
-                const nativeHeight = isFeedMode ? 1350 : 1920;
-
-                // 2) CSS 스케일링
-                const currentWidth = bannerCanvas.clientWidth || 480;
-                const scaleVal = currentWidth / nativeWidth;
-                targetWrapper.style.position = 'absolute';
-                targetWrapper.style.top = '0';
-                targetWrapper.style.left = '0';
-                targetWrapper.style.transformOrigin = 'top left';
-                targetWrapper.style.transform = `scale(${scaleVal})`;
-                targetWrapper.style.width = `${nativeWidth}px`;
-                targetWrapper.style.height = `${nativeHeight}px`;
-                
-                bannerCanvas.style.position = 'relative';
-                bannerCanvas.style.height = `${nativeHeight * scaleVal}px`;
-
-                // 3) 데이터 바인딩 로직
-                // (a) 제목
-                const title1Selector = isFeedMode ? '.line-1' : '.line-12';
-                const title2Selector = isFeedMode ? '.line-2' : '.line-22';
-                const locofyTitle1 = targetWrapper.querySelector(title1Selector);
-                const locofyTitle2 = targetWrapper.querySelector(title2Selector);
-                if (locofyTitle1 && previewTitleLine1) locofyTitle1.textContent = previewTitleLine1.textContent;
-                if (locofyTitle2 && previewTitleLine2) locofyTitle2.textContent = previewTitleLine2.textContent;
-
-                // (b) 동적 리스트 렌더링
-                const frameContents = targetWrapper.querySelector('.frame-contents');
-                if (frameContents) {
-                    frameContents.innerHTML = '';
-                    infoListDls().forEach(dl => {
-                        const dtText = dl.querySelector('dt').textContent;
-                        const bodyDiv = document.createElement('div');
-                        
-                        if (dl.id === 'preview-dl-date') {
-                            bodyDiv.className = `contents-11 ${containerClass}`;
-                            const listCls = isFeedMode ? 'list-2' : 'list-22';
-                            const titleCls = isFeedMode ? 'list-12' : 'list-14';
-                            const contentWrapCls = isFeedMode ? 'list-2-contents' : 'list-2-contents2';
-                            const dateCls = isFeedMode ? 'date' : 'date2';
-                            const timeCls = isFeedMode ? 'time' : 'time2';
-                            bodyDiv.innerHTML = `
-                              <div class="${listCls}">
-                                <h2 class="${titleCls}">${dtText}</h2>
-                              </div>
-                              <div class="${contentWrapCls}">
-                                <h2 class="${dateCls}">${document.getElementById('preview-date-date').textContent}</h2>
-                                <h2 class="${timeCls}">${document.getElementById('preview-date-time').textContent}</h2>
-                              </div>
-                            `;
-                        } else {
-                            bodyDiv.className = `contents-12 ${containerClass}`;
-                            const ddText = dl.querySelector('dd').textContent;
-                            const listCls = isFeedMode ? 'list-1' : 'list-13';
-                            const titleCls = isFeedMode ? 'list-12' : 'list-14';
-                            // In Locofy some are list-1-contents, some list-5-contents, let's use list-1-contents everywhere for simplicity
-                            const contentWrapCls = isFeedMode ? 'list-1-contents' : 'list-1-contents3';
-                            const textCls = isFeedMode ? 'list-1-contents2' : 'list-1-contents4';
-                            bodyDiv.innerHTML = `
-                              <div class="${listCls}">
-                                <h2 class="${titleCls}">${dtText}</h2>
-                              </div>
-                              <div class="${contentWrapCls}">
-                                <h2 class="${textCls}">${ddText}</h2>
-                              </div>
-                            `;
-                        }
-                        
-                        // 하이라이트(강조) 적용 연동
-                        if (dl.classList.contains('highlight-row')) {
-                             bodyDiv.style.backgroundColor = 'rgba(252, 91, 79, 0.04)';
-                             const titles = bodyDiv.querySelectorAll('h2');
-                             titles.forEach(t => {
-                                t.style.color = 'var(--Primary-Red)';
-                                t.style.fontWeight = '800';
-                             });
-                        }
-
-                        frameContents.appendChild(bodyDiv);
-                    });
-                }
-
-                // (c) 유의사항
-                const noticeHTML = document.getElementById('preview-notice').innerHTML;
-                const locofyNotice = targetWrapper.querySelector('.locofy-notice');
-                if (locofyNotice) {
-                    locofyNotice.innerHTML = noticeHTML;
-                }
-
-            } else {
-                // 원상 복구
-                standardWrapper.style.display = ''; 
-                locofyDynamicWrapper.style.display = 'none';
-                locofyDynamicWrapper.innerHTML = '';
-                locofyDynamicWrapper.dataset.activeMode = '';
-                locofyDynamicWrapper.className = '';
-                
-                bannerCanvas.style.height = ''; 
+            if (!meta) {
+                standardWrapper.style.display = '';
+                templateRenderWrapper.style.display = 'none';
+                templateRenderWrapper.replaceChildren();
+                templateRenderWrapper.dataset.activeKey = '';
+                templateRenderWrapper.className = '';
+                bannerCanvas.style.height = '';
                 bannerCanvas.style.position = '';
+                return;
             }
+
+            const mustReloadTemplate =
+                templateRenderWrapper.dataset.activeKey !== templateKey ||
+                !injectedTemplateMatchesKey(templateRenderWrapper, templateKey);
+
+            if (mustReloadTemplate) {
+                const injected = injectTemplateClone(templateRenderWrapper, templateKey);
+                if (!injected) {
+                    templateRenderWrapper.dataset.activeKey = '';
+                    console.warn('[Template] 템플릿을 찾지 못했습니다. key=', templateKey);
+                    return;
+                }
+            }
+
+            standardWrapper.style.display = 'none';
+            templateRenderWrapper.dataset.activeKey = templateKey;
+
+            const root = templateRenderWrapper.querySelector('[data-template-root]');
+            if (!root) return;
+
+            populateTemplate(root, collectBannerData(), meta);
+            applyTemplateScale(templateRenderWrapper, root, meta);
         };
 
-        // 수행!
-        syncLocofyTemplate();
+        syncTemplateRender();
 
+    };
+
+    const restoreLastViewState = () => {
+        try {
+            const lastTemplate = sessionStorage.getItem(LAST_STATE_KEYS.template);
+            const lastMode = sessionStorage.getItem(LAST_STATE_KEYS.mode);
+
+            if (lastTemplate) {
+                const tplBtnToActivate = document.querySelector(`.tpl-btn[data-tpl="${lastTemplate}"]`);
+                if (tplBtnToActivate) {
+                    tplBtnToActivate.click();
+                }
+            }
+
+            if (lastMode) {
+                const tabToActivate = document.querySelector(`.view-tab[data-mode="${lastMode}"]`);
+                if (tabToActivate) {
+                    tabToActivate.click();
+                }
+            }
+        } catch (_) {
+            // 세션 스토리지가 없거나 접근 불가한 경우 무시
+        }
     };
 
     /* ----- 뷰탭 전환 로직 (기존 탭과 통합) ----- */
@@ -1175,6 +1328,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             currentMode = tab.dataset.mode || 'feed';
             targetPx = VIEW_SPECS[currentMode].px;
+
+            try {
+                sessionStorage.setItem(LAST_STATE_KEYS.mode, currentMode);
+            } catch (_) {}
 
             // canvas-container 비율 전환
             if (canvasContainer) {
@@ -1216,7 +1373,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 초기 1회 실행 (로딩 완료 후)
-    requestAnimationFrame(() => setTimeout(runLayoutEngine, 100));
+    requestAnimationFrame(() => {
+        restoreLastViewState();
+        setTimeout(runLayoutEngine, 100);
+    });
 
     // 윈도우 리사이즈 시 재실행
     window.addEventListener('resize', triggerEngine);
