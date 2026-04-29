@@ -858,6 +858,7 @@ body {
     font-weight: 400;
     color: var(--text-main);
     line-height: 1.5;
+    white-space: pre-wrap;
     word-break: keep-all;
 }
 
@@ -893,8 +894,15 @@ body {
     position: relative;
     z-index: 1;
     color: var(--primary);
-    font-weight: 700;
     transition: color 0.3s ease;
+}
+
+.highlight-row dt {
+    font-weight: 700;
+}
+
+.highlight-row dd {
+    font-weight: 600;
 }
 
 .semi-bold { font-weight: 600; }

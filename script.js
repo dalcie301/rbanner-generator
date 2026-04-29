@@ -695,7 +695,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Dispatch input/change events to refresh UI state immediately
             setTimeout(() => {
-                document.querySelectorAll('input, select').forEach(el => {
+                document.querySelectorAll('input, textarea, select').forEach(el => {
                     if (el.tagName === 'SELECT') {
                         el.dispatchEvent(new Event('change'));
                     } else {

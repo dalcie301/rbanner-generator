@@ -143,6 +143,8 @@
   line-height: 1.3;
   letter-spacing: -0.03em;
   color: var(--template-secondary);
+  white-space: pre-wrap;
+  word-break: keep-all;
 }
 
 .banner-info-row--date .banner-info-row__label {
@@ -164,11 +166,15 @@
   background: var(--highlight-bg);
 }
 
-.banner-info-row.is-highlighted .banner-info-row__label,
+.banner-info-row.is-highlighted .banner-info-row__label {
+  color: var(--template-primary);
+  font-weight: 800;
+}
+
 .banner-info-row.is-highlighted .banner-info-row__text,
 .banner-info-row.is-highlighted .banner-info-row__date-line {
   color: var(--template-primary);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .banner-info-row--with-reward .banner-info-row__label,
